@@ -1,0 +1,78 @@
+<div class="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo"><i class="fas fa-user"></i></div>
+        <div class="sidebar-brand">
+            <h6>Task Allocation</h6>
+            <small>Employee Panel</small>
+        </div>
+    </div>
+
+    <div class="sidebar-section">
+        <p class="sidebar-section-title">Main Menu</p>
+        <div class="sidebar-menu">
+            <a href="{{ url_for('employee.dashboard') }}"
+               class="{{ 'active' if request.endpoint == 'employee.dashboard' }}">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="#"
+               class="{{ 'active' if request.endpoint == 'employee.profile' }}">
+                <i class="fas fa-user-circle"></i> My Profile
+            </a>
+            <a href="{{ url_for('employee.skill_profile') }}"
+               class="{{ 'active' if request.endpoint == 'employee.skill_profile' }}">
+                <i class="fas fa-cogs"></i> Skill Profile
+            </a>
+        </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <div class="sidebar-section">
+        <p class="sidebar-section-title">Tasks</p>
+        <div class="sidebar-menu">
+            <a href="{{ url_for('employee.view_tasks') }}"
+               class="{{ 'active' if request.endpoint == 'employee.view_tasks' }}">
+                <i class="fas fa-list"></i> View Tasks
+            </a>
+            <a href="{{ url_for('employee.allocation_explanation') }}"
+               class="{{ 'active' if request.endpoint == 'employee.allocation_explanation' }}">
+                <i class="fas fa-info-circle"></i> Allocation Info
+            </a>
+            <a href="{{ url_for('employee.update_task_status') }}"
+               class="{{ 'active' if request.endpoint == 'employee.update_task_status' }}">
+                <i class="fas fa-edit"></i> Update Status
+            </a>
+        </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <div class="sidebar-section">
+        <p class="sidebar-section-title">System</p>
+        <div class="sidebar-menu">
+            <a href="/notification/list"
+               class="{{ 'active' if request.endpoint == 'notification.list' }}">
+                <i class="fas fa-bell"></i> Notifications
+                {% if unread_count > 0 %}
+                <span style="background:#fa5252;color:white;border-radius:10px;
+                             padding:1px 6px;font-size:0.65rem;margin-left:auto;">
+                    {{ unread_count }}
+                </span>
+                {% endif %}
+            </a>
+            <a href="{{ url_for('auth.logout') }}" style="color:#fa5252 !important;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+
+    <div class="sidebar-user">
+        <div class="user-av">{{ session.get('user_name','E')[0] }}</div>
+        <div class="user-info">
+            <h6>{{ session.get('user_name','Employee') }}
+                <span class="online-dot"></span>
+            </h6>
+            <small>Employee</small>
+        </div>
+    </div>
+</div>

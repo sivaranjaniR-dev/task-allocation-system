@@ -1,0 +1,615 @@
+{% extends 'base.html' %}
+{% set hide_navbar = true %}
+
+{% block title %}Manage Users - Task Allocation System{% endblock %}
+
+{% block content %}
+<style>
+    body { background: #f0f2f8 !important; }
+
+    /* ── SIDEBAR — exact match with admin dashboard ── */
+    .sidebar {
+        height: 100vh; background: #1a2238; padding: 0;
+        display: flex; flex-direction: column;
+        position: fixed; width: 210px; top: 0; left: 0; z-index: 100;
+    }
+    .sidebar-header {
+        padding: 20px 15px; display: flex; align-items: center;
+        gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .sidebar-logo {
+        width: 38px; height: 38px;
+        background: linear-gradient(135deg, #4c6ef5, #748ffc);
+        border-radius: 10px; display: flex; align-items: center;
+        justify-content: center; color: white; font-size: 1rem;
+    }
+    .sidebar-brand h6 { color: white; font-weight: 700; margin: 0; font-size: 0.88rem; }
+    .sidebar-brand small { color: rgba(255,255,255,0.35); font-size: 0.68rem; }
+    .sidebar-section { padding: 15px 12px 5px; }
+    .sidebar-section-title {
+        color: rgba(255,255,255,0.25); font-size: 0.6rem; font-weight: 700;
+        letter-spacing: 2px; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px;
+    }
+    .sidebar-menu a {
+        display: flex; align-items: center; padding: 9px 10px;
+        color: rgba(255,255,255,0.55); text-decoration: none;
+        transition: all 0.2s; border-radius: 8px; margin-bottom: 2px;
+        font-size: 0.83rem; font-weight: 500; gap: 10px;
+    }
+    .sidebar-menu a:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.9); }
+    .sidebar-menu a.active {
+        background: linear-gradient(135deg, #4c6ef5, #748ffc);
+        color: white; box-shadow: 0 4px 15px rgba(76,110,245,0.3);
+    }
+    .sidebar-menu a i { width: 16px; font-size: 0.82rem; text-align: center; }
+    .sidebar-divider { border-color: rgba(255,255,255,0.05); margin: 6px 12px; }
+    .sidebar-user {
+        padding: 14px; border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex; align-items: center; gap: 10px; margin-top: auto;
+    }
+    .user-avatar-sm {
+        width: 34px; height: 34px;
+        background: linear-gradient(135deg, #4c6ef5, #748ffc);
+        border-radius: 50%; display: flex; align-items: center;
+        justify-content: center; color: white; font-size: 0.85rem;
+        font-weight: 700; flex-shrink: 0;
+    }
+    .user-info h6 { color: white; margin: 0; font-size: 0.8rem; font-weight: 600; }
+    .user-info small { color: rgba(255,255,255,0.35); font-size: 0.68rem; }
+    .online-dot {
+        width: 8px; height: 8px; background: #51cf66;
+        border-radius: 50%; display: inline-block; margin-left: 4px;
+    }
+
+    /* ── MAIN ── */
+    .main-wrapper { margin-left: 210px; padding: 28px; min-height: 100vh; background: #f0f2f8; }
+
+    /* top bar */
+    .top-bar {
+        display: flex; justify-content: space-between;
+        align-items: center; margin-bottom: 26px; flex-wrap: wrap; gap: 14px;
+    }
+    .top-bar h4 { color: #1a2238; font-weight: 800; font-size: 1.4rem; margin: 0 0 4px; }
+    .top-bar h4 span { color: #4c6ef5; }
+    .top-bar p { color: #6c757d; font-size: 0.85rem; margin: 0; }
+    .top-right { display: flex; align-items: center; gap: 12px; }
+
+    /* notification bell */
+    .notif-btn {
+        position: relative; width: 40px; height: 40px; border-radius: 10px;
+        background: white; border: 1px solid #e9ecef;
+        display: flex; align-items: center; justify-content: center;
+        color: #6c757d; font-size: 1rem; cursor: pointer; text-decoration: none;
+        transition: all 0.2s;
+    }
+    .notif-btn:hover { border-color: #4c6ef5; color: #4c6ef5; }
+    .notif-badge {
+        position: absolute; top: -4px; right: -4px;
+        background: #fa5252; color: white; border-radius: 50%;
+        width: 18px; height: 18px; font-size: 0.62rem; font-weight: 700;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .admin-chip {
+        display: flex; align-items: center; gap: 8px;
+        background: white; border: 1px solid #e9ecef; border-radius: 10px;
+        padding: 6px 12px;
+    }
+    .admin-av {
+        width: 30px; height: 30px; border-radius: 50%;
+        background: linear-gradient(135deg, #4c6ef5, #748ffc);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 0.8rem; font-weight: 700;
+    }
+    .admin-chip span { font-size: 0.82rem; font-weight: 600; color: #1a2238; }
+    .admin-chip small { font-size: 0.7rem; color: #6c757d; display: block; }
+
+    /* ── STAT CARDS ── */
+    .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card {
+        background: white; border-radius: 14px; padding: 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.04);
+        display: flex; align-items: center; gap: 16px;
+    }
+    .stat-icon {
+        width: 52px; height: 52px; border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.3rem; flex-shrink: 0;
+    }
+    .ic-blue   { background: linear-gradient(135deg,#4c6ef5,#748ffc); color: white; }
+    .ic-orange { background: linear-gradient(135deg,#fd7e14,#ffa94d); color: white; }
+    .ic-green  { background: linear-gradient(135deg,#2f9e44,#51cf66); color: white; }
+    .ic-purple { background: linear-gradient(135deg,#7048e8,#9775fa); color: white; }
+    .ic-red    { background: linear-gradient(135deg,#e03131,#ff6b6b); color: white; }
+    .stat-info h3 { font-size: 1.8rem; font-weight: 800; color: #1a2238; margin: 0 0 2px; line-height: 1; }
+    .stat-info p  { font-size: 0.78rem; color: #6c757d; margin: 0; }
+    .stat-trend { font-size: 0.72rem; margin-top: 4px; font-weight: 600; }
+    .trend-up   { color: #2f9e44; }
+    .trend-dn   { color: #fa5252; }
+
+    /* ── MAIN CARD ── */
+    .main-card {
+        background: white; border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        border: 1px solid rgba(0,0,0,0.04); overflow: hidden;
+    }
+    .card-head {
+        padding: 18px 22px; border-bottom: 1px solid #f1f3f5;
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 12px;
+    }
+    .card-head h5 { color: #1a2238; font-weight: 700; font-size: 0.95rem; margin: 0; }
+    .card-head h5 i { color: #4c6ef5; margin-right: 6px; }
+
+    /* search + filter row */
+    .filter-row {
+        padding: 14px 22px; background: #fafafa;
+        border-bottom: 1px solid #f1f3f5;
+        display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    }
+    .f-input {
+        border: 1px solid #e9ecef; border-radius: 8px; padding: 8px 14px;
+        font-size: 0.82rem; color: #1a2238; background: white;
+        outline: none; min-width: 220px; transition: all 0.2s;
+    }
+    .f-input:focus { border-color: #4c6ef5; box-shadow: 0 0 0 3px rgba(76,110,245,0.1); }
+    .f-select {
+        border: 1px solid #e9ecef; border-radius: 8px; padding: 8px 14px;
+        font-size: 0.82rem; color: #1a2238; background: white; outline: none; cursor: pointer;
+    }
+    .f-select:focus { border-color: #4c6ef5; }
+    .f-label { font-size: 0.78rem; color: #6c757d; font-weight: 600; }
+    .ml-auto { margin-left: auto; }
+
+    /* ── TABLE ── */
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 800px; }
+    thead tr { background: #f8f9fa; }
+    thead th {
+        padding: 12px 18px; font-size: 0.71rem; font-weight: 700;
+        color: #6c757d; text-transform: uppercase; letter-spacing: 0.8px;
+        border-bottom: 1px solid #f1f3f5; white-space: nowrap; text-align: left;
+    }
+    tbody tr { border-bottom: 1px solid #f8f9fa; transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f8f9ff; }
+    tbody td { padding: 14px 18px; font-size: 0.83rem; color: #1a2238; vertical-align: middle; }
+
+    /* user cell */
+    .user-cell { display: flex; align-items: center; gap: 12px; }
+    .u-av {
+        width: 38px; height: 38px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 0.88rem; font-weight: 700; flex-shrink: 0;
+    }
+    .u-name { font-weight: 700; font-size: 0.85rem; margin: 0 0 2px; color: #1a2238; }
+    .u-email { font-size: 0.75rem; color: #6c757d; }
+
+    /* role badge */
+    .role-badge {
+        display: inline-flex; align-items: center; gap: 5px;
+        border-radius: 20px; padding: 4px 12px;
+        font-size: 0.72rem; font-weight: 700;
+    }
+    .role-admin    { background: linear-gradient(135deg,#4c6ef5,#748ffc); color: white; }
+    .role-manager  { background: linear-gradient(135deg,#fd7e14,#ffa94d); color: white; }
+    .role-employee { background: linear-gradient(135deg,#2f9e44,#51cf66); color: white; }
+
+    /* status dot */
+    .status-cell { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; }
+    .s-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .s-active   .s-dot { background: #2f9e44; }
+    .s-active   { color: #2f9e44; }
+    .s-inactive .s-dot { background: #adb5bd; }
+    .s-inactive { color: #adb5bd; }
+
+    /* action buttons */
+    .action-wrap { display: flex; gap: 6px; }
+    .btn-action {
+        display: inline-flex; align-items: center; gap: 5px;
+        border-radius: 7px; padding: 5px 11px;
+        font-size: 0.75rem; font-weight: 600;
+        cursor: pointer; transition: all 0.2s; border: none;
+        text-decoration: none;
+    }
+    .btn-role   { background: #f0f4ff; color: #4c6ef5; }
+    .btn-role:hover   { background: #4c6ef5; color: white; }
+    .btn-delete { background: #fff5f5; color: #fa5252; }
+    .btn-delete:hover { background: #fa5252; color: white; }
+
+    /* count badge */
+    .count-pill {
+        background: #f0f4ff; color: #4c6ef5;
+        border-radius: 20px; padding: 3px 12px;
+        font-size: 0.75rem; font-weight: 700;
+    }
+
+    /* empty state */
+    .empty-state { text-align: center; padding: 50px 20px; color: #adb5bd; }
+    .empty-state i { font-size: 2.5rem; display: block; margin-bottom: 12px; opacity: 0.4; }
+
+    /* alert */
+    .alert-custom {
+        border-radius: 10px; padding: 12px 16px;
+        font-size: 0.83rem; font-weight: 500; margin-bottom: 20px; border: none;
+    }
+
+    /* ── CHANGE ROLE MODAL ── */
+    .modal-bg {
+        display: none; position: fixed; inset: 0;
+        background: rgba(0,0,0,0.45); z-index: 999;
+        align-items: center; justify-content: center;
+    }
+    .modal-bg.show { display: flex; }
+    .modal-box {
+        background: white; border-radius: 16px; padding: 28px;
+        width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        position: relative; margin: 16px;
+    }
+    .modal-ttl { font-size: 1rem; font-weight: 800; color: #1a2238; margin: 0 0 20px; display: flex; align-items: center; gap: 8px; }
+    .modal-ttl i { color: #4c6ef5; }
+    .modal-x {
+        position: absolute; top: 16px; right: 16px;
+        background: #f1f3f5; border: none; border-radius: 8px;
+        width: 30px; height: 30px; cursor: pointer; color: #6c757d;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .modal-x:hover { background: #fa5252; color: white; }
+    .modal-label { font-size: 0.82rem; font-weight: 600; color: #495057; margin-bottom: 8px; display: block; }
+    .modal-select {
+        width: 100%; border: 1.5px solid #e9ecef; border-radius: 9px;
+        padding: 10px 14px; font-size: 0.85rem; color: #1a2238;
+        outline: none; margin-bottom: 20px; transition: all 0.2s;
+    }
+    .modal-select:focus { border-color: #4c6ef5; box-shadow: 0 0 0 3px rgba(76,110,245,0.1); }
+    .modal-user-info {
+        display: flex; align-items: center; gap: 12px;
+        background: #f8f9fa; border-radius: 10px; padding: 12px 14px; margin-bottom: 18px;
+    }
+    .btn-confirm {
+        width: 100%; padding: 11px; background: linear-gradient(135deg,#4c6ef5,#748ffc);
+        border: none; border-radius: 10px; color: white;
+        font-weight: 700; font-size: 0.88rem; cursor: pointer;
+        transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-confirm:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(76,110,245,0.35); }
+</style>
+
+<div style="display:flex;">
+
+    <!-- ══ SIDEBAR ══════════════════════════════════════ -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo"><i class="fas fa-list-alt"></i></div>
+            <div class="sidebar-brand">
+                <h6>Task Allocation</h6>
+                <small>System</small>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">Main Menu</p>
+            <div class="sidebar-menu">
+                <a href="{{ url_for('admin.dashboard') }}">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="{{ url_for('admin.users') }}" class="active">
+                    <i class="fas fa-users"></i> Manage Users
+                </a>
+                <a href="{{ url_for('admin.company') }}">
+                    <i class="fas fa-building"></i> Company Details
+                </a>
+            </div>
+        </div>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">Skills &amp; Workload</p>
+            <div class="sidebar-menu">
+                <a href="{{ url_for('skill.list') }}">
+                    <i class="fas fa-cogs"></i> Manage Skills
+                </a>
+                <a href="{{ url_for('admin.workload') }}">
+                    <i class="fas fa-tachometer-alt"></i> Set Workload
+                </a>
+            </div>
+        </div>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">Reports</p>
+            <div class="sidebar-menu">
+                <a href="{{ url_for('log.history') }}">
+                    <i class="fas fa-history"></i> View Logs
+                </a>
+            </div>
+        </div>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">System</p>
+            <div class="sidebar-menu">
+                <a href="{{ url_for('auth.logout') }}" style="color:#fa5252 !important;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="user-avatar-sm">{{ session.get('user_name', 'A')[0] }}</div>
+            <div class="user-info">
+                <h6>{{ session.get('user_name', 'Admin') }} <span class="online-dot"></span></h6>
+                <small>System Administrator</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ MAIN CONTENT ═════════════════════════════════ -->
+    <div class="main-wrapper">
+
+        <!-- Top bar -->
+        <div class="top-bar">
+            <div>
+                <h4>Manage <span>Users</span></h4>
+                <p>View, manage roles and control all system users.</p>
+            </div>
+            <div class="top-right">
+                <a href="/notification/list" class="notif-btn">
+                    <i class="fas fa-bell"></i>
+                    {% if unread_count > 0 %}
+                    <span class="notif-badge">{{ unread_count }}</span>
+                    {% endif %}
+                </a>
+                <div class="admin-chip">
+                    <div class="admin-av">{{ session.get('user_name', 'A')[0] }}</div>
+                    <div>
+                        <span>{{ session.get('user_name', 'Admin') }}</span>
+                        <small>Administrator</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert-custom alert alert-{{ category }}">
+                    <i class="fas fa-{% if category == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- ── STAT CARDS ── -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon ic-blue"><i class="fas fa-users"></i></div>
+                <div class="stat-info">
+                    <h3>{{ users | length }}</h3>
+                    <p>Total Users</p>
+                    <div class="stat-trend trend-up">↑ All registered users</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon ic-orange"><i class="fas fa-user-tie"></i></div>
+                <div class="stat-info">
+                    <h3>{{ users | selectattr('role','equalto','manager') | list | length }}</h3>
+                    <p>Managers</p>
+                    <div class="stat-trend trend-up">↑ Active managers</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon ic-green"><i class="fas fa-user"></i></div>
+                <div class="stat-info">
+                    <h3>{{ users | selectattr('role','equalto','employee') | list | length }}</h3>
+                    <p>Employees</p>
+                    <div class="stat-trend trend-up">↑ Active employees</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon ic-purple"><i class="fas fa-user-shield"></i></div>
+                <div class="stat-info">
+                    <h3>{{ users | selectattr('role','equalto','admin') | list | length }}</h3>
+                    <p>Admins</p>
+                    <div class="stat-trend trend-up">↑ System admins</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── USER TABLE CARD ── -->
+        <div class="main-card">
+            <div class="card-head">
+                <h5><i class="fas fa-users"></i> All Users</h5>
+                <span class="count-pill">{{ users | length }} Users</span>
+            </div>
+
+            <!-- Filter row -->
+            <div class="filter-row">
+                <span class="f-label">Filter:</span>
+                <select class="f-select" id="roleFilter" onchange="filterUsers()">
+                    <option value="">All Roles</option>
+                    <option value="admin">Admin</option>
+                    <option value="manager">Manager</option>
+                    <option value="employee">Employee</option>
+                </select>
+                <input type="text" class="f-input" id="searchInput"
+                       placeholder="&#xf002;  Search by name or email..."
+                       oninput="filterUsers()">
+            </div>
+
+            <div class="tbl-wrap">
+                <table id="userTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Joined</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for user in users %}
+                    {% set colors = ['#4c6ef5','#fd7e14','#2f9e44','#7048e8','#e03131','#0c8599'] %}
+                    <tr data-role="{{ user.role }}"
+                        data-search="{{ user.name | lower }} {{ user.email | lower }}">
+
+                        <!-- # -->
+                        <td style="color:#adb5bd;font-size:0.78rem;font-weight:600;">
+                            {{ loop.index }}
+                        </td>
+
+                        <!-- User info -->
+                        <td>
+                            <div class="user-cell">
+                                <div class="u-av"
+                                     style="background:linear-gradient(135deg,
+                                     {{ colors[(loop.index0) % colors|length] }},
+                                     {{ colors[(loop.index0 + 1) % colors|length] }});">
+                                    {{ user.name[0] | upper }}
+                                </div>
+                                <div>
+                                    <p class="u-name">{{ user.name }}</p>
+                                    <p class="u-email">{{ user.email }}</p>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Role -->
+                        <td>
+                            <span class="role-badge
+                                {% if user.role == 'admin' %}role-admin
+                                {% elif user.role == 'manager' %}role-manager
+                                {% else %}role-employee{% endif %}">
+                                <i class="fas fa-{% if user.role == 'admin' %}shield-alt{% elif user.role == 'manager' %}user-tie{% else %}user{% endif %}"></i>
+                                {{ user.role | capitalize }}
+                            </span>
+                        </td>
+
+                        <!-- Joined date -->
+                        <td style="color:#6c757d;font-size:0.8rem;">
+                            {% if user.created_at %}
+                                {{ user.created_at.strftime('%d %b %Y') }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        <!-- Status -->
+                        <td>
+                            <div class="status-cell s-active">
+                                <span class="s-dot"></span> Active
+                            </div>
+                        </td>
+
+                        <!-- Actions -->
+                        <td>
+                            <div class="action-wrap">
+                                <!-- Change Role -->
+                                <button class="btn-action btn-role"
+                                    onclick="openRoleModal(
+                                        {{ user.id }},
+                                        '{{ user.name }}',
+                                        '{{ user.role }}'
+                                    )">
+                                    <i class="fas fa-exchange-alt"></i> Role
+                                </button>
+
+                                <!-- Delete -->
+                                {% if user.role != 'admin' %}
+                                <a href="{{ url_for('admin.delete_user', user_id=user.id) }}"
+                                   class="btn-action btn-delete"
+                                   onclick="return confirm('Delete {{ user.name }}? This cannot be undone.')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+
+                    {% if not users %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <i class="fas fa-users"></i>
+                                <p style="font-weight:700;margin-bottom:4px;">No users found</p>
+                                <p style="font-size:0.78rem;">Register users to see them here.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div><!-- /main-wrapper -->
+</div>
+
+<!-- ══ CHANGE ROLE MODAL ══════════════════════════════ -->
+<div class="modal-bg" id="roleModal" onclick="bgClose(event)">
+    <div class="modal-box">
+        <button class="modal-x" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        <p class="modal-ttl"><i class="fas fa-exchange-alt"></i> Change User Role</p>
+
+        <!-- User info preview -->
+        <div class="modal-user-info">
+            <div class="u-av" id="m-av"
+                 style="width:40px;height:40px;border-radius:50%;
+                        background:linear-gradient(135deg,#4c6ef5,#748ffc);
+                        display:flex;align-items:center;justify-content:center;
+                        color:white;font-size:1rem;font-weight:700;flex-shrink:0;">
+            </div>
+            <div>
+                <p style="font-weight:700;margin:0;font-size:0.88rem;" id="m-name"></p>
+                <p style="color:#6c757d;font-size:0.75rem;margin:0;" id="m-current-role"></p>
+            </div>
+        </div>
+
+        <form method="POST" id="roleForm">
+            <label class="modal-label">Select New Role</label>
+            <select class="modal-select" name="role" id="m-role-select">
+                <option value="admin">Admin</option>
+                <option value="manager">Manager</option>
+                <option value="employee">Employee</option>
+            </select>
+            <button type="submit" class="btn-confirm">
+                <i class="fas fa-check"></i> Confirm Role Change
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+/* ── Filter table ── */
+function filterUsers() {
+    const role  = document.getElementById('roleFilter').value.toLowerCase();
+    const search= document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('#userTable tbody tr[data-role]').forEach(r => {
+        const mr = !role   || r.dataset.role === role;
+        const ms = !search || r.dataset.search.includes(search);
+        r.style.display = (mr && ms) ? '' : 'none';
+    });
+}
+
+/* ── Role modal ── */
+function openRoleModal(userId, name, currentRole) {
+    document.getElementById('m-av').textContent          = name[0].toUpperCase();
+    document.getElementById('m-name').textContent        = name;
+    document.getElementById('m-current-role').textContent= 'Current role: ' + currentRole;
+    document.getElementById('m-role-select').value       = currentRole;
+    document.getElementById('roleForm').action           = '/admin/change_role/' + userId;
+    document.getElementById('roleModal').classList.add('show');
+}
+function closeModal() { document.getElementById('roleModal').classList.remove('show'); }
+function bgClose(e)   { if (e.target.id === 'roleModal') closeModal(); }
+</script>
+
+{% endblock %}

@@ -1,0 +1,421 @@
+{% extends 'base.html' %}
+{% set hide_navbar = true %}
+
+{% block title %}Notifications - Task Allocation System{% endblock %}
+
+{% block content %}
+<style>
+    body { background: #f0f2f8 !important; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+        height: 100vh; background: #1a2238; padding: 0;
+        display: flex; flex-direction: column;
+        position: fixed; width: 210px; top: 0; left: 0; z-index: 100;
+    }
+    .sidebar-header {
+        padding: 20px 15px; display: flex; align-items: center;
+        gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .sidebar-logo {
+        width: 38px; height: 38px;
+        background: linear-gradient(135deg, #fd7e14, #ffa94d);
+        border-radius: 10px; display: flex; align-items: center;
+        justify-content: center; color: white; font-size: 1rem;
+    }
+    .sidebar-brand h6 { color: white; font-weight: 700; margin: 0; font-size: 0.88rem; }
+    .sidebar-brand small { color: rgba(255,255,255,0.35); font-size: 0.68rem; }
+    .sidebar-section { padding: 15px 12px 5px; }
+    .sidebar-section-title {
+        color: rgba(255,255,255,0.25); font-size: 0.6rem; font-weight: 700;
+        letter-spacing: 2px; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px;
+    }
+    .sidebar-menu a {
+        display: flex; align-items: center; padding: 9px 10px;
+        color: rgba(255,255,255,0.55); text-decoration: none;
+        transition: all 0.2s; border-radius: 8px; margin-bottom: 2px;
+        font-size: 0.83rem; font-weight: 500; gap: 10px;
+    }
+    .sidebar-menu a:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.9); }
+    .sidebar-menu a.active {
+        background: linear-gradient(135deg, #fd7e14, #ffa94d);
+        color: white; box-shadow: 0 4px 15px rgba(253,126,20,0.3);
+    }
+    .sidebar-menu a i { width: 16px; font-size: 0.82rem; text-align: center; }
+    .sidebar-divider { border-color: rgba(255,255,255,0.05); margin: 6px 12px; }
+    .sidebar-user {
+        padding: 14px; border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex; align-items: center; gap: 10px; margin-top: auto;
+    }
+    .user-av {
+        width: 34px; height: 34px;
+        background: linear-gradient(135deg, #fd7e14, #ffa94d);
+        border-radius: 50%; display: flex; align-items: center;
+        justify-content: center; color: white; font-size: 0.85rem; font-weight: 700; flex-shrink: 0;
+    }
+    .user-info h6 { color: white; margin: 0; font-size: 0.8rem; font-weight: 600; }
+    .user-info small { color: rgba(255,255,255,0.35); font-size: 0.68rem; }
+    .online-dot { width:8px; height:8px; background:#51cf66; border-radius:50%; display:inline-block; margin-left:4px; }
+
+    /* ── MAIN ── */
+    .main-wrapper {
+        margin-left: 210px; padding: 25px;
+        min-height: 100vh; background: #f0f2f8;
+        width: calc(100% - 210px);
+    }
+    .top-bar {
+        display:flex; justify-content:space-between; align-items:center;
+        margin-bottom:24px; flex-wrap:wrap; gap:14px;
+    }
+    .top-bar h4 { color:#1a2238; font-weight:800; font-size:1.4rem; margin:0 0 4px; }
+    .top-bar h4 span { color:#fd7e14; }
+    .top-bar p { color:#6c757d; font-size:0.85rem; margin:0; }
+
+    .btn-mark-all {
+        display:inline-flex; align-items:center; gap:7px;
+        background:white; border:1.5px solid #e9ecef; border-radius:10px;
+        padding:9px 18px; font-size:0.82rem; font-weight:600; color:#6c757d;
+        text-decoration:none; transition:all 0.2s;
+    }
+    .btn-mark-all:hover { border-color:#fd7e14; color:#fd7e14; background:#fff9f5; }
+
+    /* ── STATS ── */
+    .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+    .stat-card {
+        background:white; border-radius:14px; padding:18px 20px;
+        box-shadow:0 2px 12px rgba(0,0,0,0.06); border:1px solid rgba(0,0,0,0.04);
+        display:flex; align-items:center; gap:14px;
+    }
+    .stat-icon { width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+    .ic-orange { background:linear-gradient(135deg,#fff4e6,#ffe8cc); color:#fd7e14; }
+    .ic-red    { background:linear-gradient(135deg,#fff5f5,#ffc9c9); color:#fa5252; }
+    .ic-green  { background:linear-gradient(135deg,#ebfbee,#d3f9d8); color:#2f9e44; }
+    .stat-val  { font-size:1.6rem; font-weight:800; color:#1a2238; margin:0; line-height:1; }
+    .stat-lbl  { font-size:0.75rem; color:#6c757d; margin:3px 0 0; }
+
+    /* ── GRID ── */
+    .page-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start; }
+
+    /* ── CARDS ── */
+    .main-card {
+        background:white; border-radius:14px;
+        box-shadow:0 2px 12px rgba(0,0,0,0.06);
+        border:1px solid rgba(0,0,0,0.04); overflow:hidden;
+    }
+    .card-head {
+        padding:16px 20px; border-bottom:1px solid #f1f3f5;
+        display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .card-head h5 { color:#1a2238; font-weight:700; font-size:0.92rem; margin:0; display:flex; align-items:center; gap:8px; }
+    .card-head h5 i { color:#fd7e14; }
+    .count-pill  { background:#fff4e6; color:#fd7e14; border-radius:20px; padding:3px 10px; font-size:0.73rem; font-weight:700; }
+    .unread-pill { background:#fa5252; color:white; border-radius:20px; padding:3px 10px; font-size:0.73rem; font-weight:700; }
+    .read-pill   { background:#ebfbee; color:#2f9e44; border-radius:20px; padding:3px 10px; font-size:0.73rem; font-weight:700; }
+
+    /* ── NOTIFICATION ITEMS ── */
+    .notif-item {
+        display:flex; align-items:flex-start; gap:12px;
+        padding:14px 20px; border-bottom:1px solid #f8f9fa;
+        transition:background 0.15s; position:relative;
+    }
+    .notif-item:last-child { border-bottom:none; }
+    .notif-item:hover { background:#fff9f5; }
+    .notif-item.unread { border-left:3px solid #fd7e14; background:#fffbf6; }
+    .notif-item.read   { border-left:3px solid transparent; }
+
+    .notif-icon {
+        width:38px; height:38px; border-radius:10px; flex-shrink:0;
+        display:flex; align-items:center; justify-content:center; font-size:0.88rem;
+    }
+    .ni-task   { background:linear-gradient(135deg,#fff4e6,#ffe8cc); color:#fd7e14; }
+    .ni-done   { background:linear-gradient(135deg,#ebfbee,#d3f9d8); color:#2f9e44; }
+    .ni-info   { background:linear-gradient(135deg,#e7f5ff,#d0ebff); color:#1971c2; }
+
+    .notif-body { flex:1; min-width:0; }
+    .notif-msg  { font-size:0.83rem; color:#1a2238; margin:0 0 4px; line-height:1.45; }
+    .notif-item.unread .notif-msg { font-weight:700; }
+    .notif-item.read   .notif-msg { font-weight:500; color:#495057; }
+    .notif-time { font-size:0.7rem; color:#adb5bd; display:flex; align-items:center; gap:4px; }
+
+    .unread-dot {
+        width:8px; height:8px; border-radius:50%;
+        background:#fd7e14; flex-shrink:0; margin-top:5px;
+    }
+
+    /* ── ALLOCATION ITEMS ── */
+    .alloc-item {
+        display:flex; align-items:flex-start; gap:12px;
+        padding:14px 20px; border-bottom:1px solid #f8f9fa; transition:background 0.15s;
+    }
+    .alloc-item:last-child { border-bottom:none; }
+    .alloc-item:hover { background:#fff9f5; }
+
+    .alloc-icon {
+        width:38px; height:38px; border-radius:10px; flex-shrink:0;
+        background:linear-gradient(135deg,#fd7e14,#ffa94d);
+        display:flex; align-items:center; justify-content:center; color:white; font-size:0.88rem;
+    }
+
+    .alloc-body { flex:1; min-width:0; }
+    .alloc-title { font-size:0.85rem; font-weight:700; color:#1a2238; margin:0 0 4px; }
+    .alloc-meta {
+        display:flex; gap:10px; flex-wrap:wrap;
+        font-size:0.72rem; color:#adb5bd; margin-bottom:7px;
+    }
+    .alloc-meta span { display:flex; align-items:center; gap:3px; }
+    .alloc-meta i { color:#fd7e14; font-size:0.65rem; }
+
+    /* score mini bar */
+    .score-row { display:flex; align-items:center; gap:8px; }
+    .score-lbl { font-size:0.68rem; color:#adb5bd; white-space:nowrap; }
+    .bar-bg    { flex:1; height:4px; background:#f1f3f5; border-radius:10px; overflow:hidden; }
+    .bar-fill  { height:100%; border-radius:10px; }
+    .bf-high   { background:linear-gradient(90deg,#2f9e44,#51cf66); }
+    .bf-mid    { background:linear-gradient(90deg,#f59f00,#fcc419); }
+    .bf-low    { background:linear-gradient(90deg,#fa5252,#ff8787); }
+    .score-pct { font-size:0.72rem; font-weight:700; color:#1a2238; white-space:nowrap; }
+
+    /* status badge */
+    .st-badge { display:inline-flex; align-items:center; gap:4px; border-radius:20px; padding:2px 9px; font-size:0.68rem; font-weight:700; white-space:nowrap; }
+    .st-dot   { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+    .st-assigned  { background:#e7f5ff; color:#1971c2; }
+    .st-assigned .st-dot  { background:#1971c2; }
+    .st-ongoing   { background:#fff4e6; color:#e67700; }
+    .st-ongoing .st-dot   { background:#f59f00; }
+    .st-completed { background:#ebfbee; color:#2f9e44; }
+    .st-completed .st-dot { background:#2f9e44; }
+
+    /* empty */
+    .empty-state { text-align:center; padding:40px 20px; color:#adb5bd; }
+    .empty-state i { font-size:2rem; display:block; margin-bottom:10px; opacity:0.4; }
+    .empty-state p { font-size:0.83rem; margin:0; }
+
+    .alert-custom { border-radius:10px; padding:12px 16px; font-size:0.83rem; font-weight:500; margin-bottom:20px; border:none; }
+</style>
+
+<div style="display:flex;">
+
+    <!-- ══ SIDEBAR ══════════════════════════════════════ -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo"><i class="fas fa-user"></i></div>
+            <div class="sidebar-brand">
+                <h6>Task Allocation</h6>
+                <small>Employee Panel</small>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">Main Menu</p>
+            <div class="sidebar-menu">
+                <a href="{{ url_for('employee.dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="#"><i class="fas fa-user-circle"></i> My Profile</a>
+                <a href="{{ url_for('employee.skill_profile') }}"><i class="fas fa-cogs"></i> Skill Profile</a>
+            </div>
+        </div>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">Tasks</p>
+            <div class="sidebar-menu">
+                <a href="{{ url_for('employee.view_tasks') }}"><i class="fas fa-list"></i> View Tasks</a>
+                <a href="{{ url_for('employee.allocation_explanation') }}"><i class="fas fa-info-circle"></i> Allocation Info</a>
+                <a href="{{ url_for('employee.update_task_status') }}"><i class="fas fa-edit"></i> Update Status</a>
+            </div>
+        </div>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">System</p>
+            <div class="sidebar-menu">
+                <a href="/notification/list" class="active">
+                    <i class="fas fa-bell"></i> Notifications
+                    {% if unread_count > 0 %}
+                    <span style="background:#fa5252;color:white;border-radius:10px;padding:1px 6px;font-size:0.65rem;margin-left:auto;">{{ unread_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('auth.logout') }}" style="color:#fa5252 !important;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="user-av">{{ session.get('user_name','E')[0] }}</div>
+            <div class="user-info">
+                <h6>{{ session.get('user_name','Employee') }} <span class="online-dot"></span></h6>
+                <small>Employee</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ MAIN CONTENT ═════════════════════════════════ -->
+    <div class="main-wrapper">
+
+        <!-- Top bar -->
+        <div class="top-bar">
+            <div>
+                <h4>My <span>Notifications</span></h4>
+                <p>Task assignments and system alerts.</p>
+            </div>
+            <a href="{{ url_for('notification.mark_all_read') }}" class="btn-mark-all">
+                <i class="fas fa-check-double"></i> Mark All as Read
+            </a>
+        </div>
+
+        <!-- Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert-custom alert alert-{{ category }}">
+                    <i class="fas fa-{% if category == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- ── STATS ── -->
+        {% set unread_count_local = notifications|selectattr('is_read','equalto',False)|list|length %}
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon ic-orange"><i class="fas fa-bell"></i></div>
+                <div>
+                    <p class="stat-val">{{ notifications|length }}</p>
+                    <p class="stat-lbl">Total Notifications</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon ic-red"><i class="fas fa-envelope"></i></div>
+                <div>
+                    <p class="stat-val">{{ unread_count_local }}</p>
+                    <p class="stat-lbl">Unread</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon ic-green"><i class="fas fa-bolt"></i></div>
+                <div>
+                    <p class="stat-val">{{ recent_allocations|length }}</p>
+                    <p class="stat-lbl">Recent Allocations</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── PAGE GRID ── -->
+        <div class="page-grid">
+
+            <!-- ── LEFT: Notifications ────────────────────── -->
+            <div class="main-card">
+                <div class="card-head">
+                    <h5><i class="fas fa-bell"></i> Notifications</h5>
+                    {% if unread_count_local > 0 %}
+                    <span class="unread-pill">{{ unread_count_local }} Unread</span>
+                    {% else %}
+                    <span class="read-pill"><i class="fas fa-check"></i> All Read</span>
+                    {% endif %}
+                </div>
+
+                {% if notifications %}
+                {% for notif in notifications %}
+                <div class="notif-item {{ 'unread' if not notif.is_read else 'read' }}">
+                    <div class="notif-icon
+                        {% if 'assign' in notif.message|lower %}ni-task
+                        {% elif 'complet' in notif.message|lower %}ni-done
+                        {% else %}ni-info{% endif %}">
+                        <i class="fas fa-
+                            {% if 'assign' in notif.message|lower %}bolt
+                            {% elif 'complet' in notif.message|lower %}check-circle
+                            {% else %}info-circle{% endif %}">
+                        </i>
+                    </div>
+                    <div class="notif-body">
+                        <p class="notif-msg">{{ notif.message }}</p>
+                        <span class="notif-time">
+                            <i class="fas fa-clock"></i>
+                            {{ notif.created_at.strftime('%d %b %Y, %I:%M %p') if notif.created_at else '—' }}
+                        </span>
+                    </div>
+                    {% if not notif.is_read %}
+                    <div class="unread-dot"></div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-bell-slash"></i>
+                    <p style="font-weight:700;margin-bottom:4px;">No notifications</p>
+                    <p style="font-size:0.75rem;">You're all caught up!</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- ── RIGHT: Recent Allocated Tasks ─────────── -->
+            <div class="main-card">
+                <div class="card-head">
+                    <h5><i class="fas fa-bolt"></i> Recently Allocated Tasks</h5>
+                    <span class="count-pill">{{ recent_allocations|length }} Tasks</span>
+                </div>
+
+                {% if recent_allocations %}
+                {% for alloc in recent_allocations %}
+                <div class="alloc-item">
+                    <div class="alloc-icon"><i class="fas fa-tasks"></i></div>
+                    <div class="alloc-body">
+
+                        <p class="alloc-title">{{ alloc.task.title }}</p>
+
+                        <div class="alloc-meta">
+                            <span>
+                                <i class="fas fa-clock"></i>
+                                {{ alloc.allocated_at.strftime('%d %b %Y') if alloc.allocated_at else '—' }}
+                            </span>
+                            {% if alloc.task.deadline %}
+                            <span>
+                                <i class="fas fa-calendar-alt"></i>
+                                Due: {{ alloc.task.deadline.strftime('%d %b %Y') }}
+                            </span>
+                            {% endif %}
+                            <span>
+                                <i class="fas fa-tachometer-alt"></i>
+                                Workload: {{ alloc.workload_at_allocation }}/10
+                            </span>
+                        </div>
+
+                        <!-- Score bar + status -->
+                        <div class="score-row">
+                            <span class="score-lbl">Skill Match</span>
+                            <div class="bar-bg">
+                                <div class="bar-fill
+                                    {% if alloc.skill_match_score >= 75 %}bf-high
+                                    {% elif alloc.skill_match_score >= 50 %}bf-mid
+                                    {% else %}bf-low{% endif %}"
+                                    style="width:{{ alloc.skill_match_score }}%;">
+                                </div>
+                            </div>
+                            <span class="score-pct">{{ alloc.skill_match_score }}%</span>
+                            <span class="st-badge
+                                {% if alloc.task_status == 'ASSIGNED' %}st-assigned
+                                {% elif alloc.task_status == 'ONGOING' %}st-ongoing
+                                {% else %}st-completed{% endif %}">
+                                <span class="st-dot"></span>{{ alloc.task_status }}
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-bolt"></i>
+                    <p style="font-weight:700;margin-bottom:4px;">No allocations yet</p>
+                    <p style="font-size:0.75rem;">Assigned tasks will appear here.</p>
+                </div>
+                {% endif %}
+
+            </div>
+        </div><!-- /page-grid -->
+    </div><!-- /main-wrapper -->
+</div>
+{% endblock %}

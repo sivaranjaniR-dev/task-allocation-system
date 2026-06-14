@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+{% set hide_navbar = true %}
+
+{% block title %}Employees - Task Allocation System{% endblock %}
+
+{% block content %}
+<style>
+    body { background: #f0f2f8 !important; }
+
+    .sidebar {
+        height: 100vh; background: #1a2238; padding: 0;
+        display: flex; flex-direction: column;
+        position: fixed; width: 210px; top: 0; left: 0; z-index: 100;
+    }
+    .sidebar-header {
+        padding: 20px 15px; display: flex; align-items: center;
+        gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .sidebar-logo {
+        width: 38px; height: 38px;
+        background: linear-gradient(135deg, #2f9e44, #69db7c);
+        border-radius: 10px; display: flex; align-items: center;
+        justify-content: center; color: white; font-size: 1rem;
+    }
+    .sidebar-brand h6 { color: white; font-weight: 700; margin: 0; font-size: 0.88rem; }
+    .sidebar-brand small { color: rgba(255,255,255,0.35); font-size: 0.68rem; }
+    .sidebar-section { padding: 15px 12px 5px; }
+    .sidebar-section-title {
+        color: rgba(255,255,255,0.25); font-size: 0.6rem; font-weight: 700;
+        letter-spacing: 2px; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px;
+    }
+    .sidebar-menu a {
+        display: flex; align-items: center; padding: 9px 10px;
+        color: rgba(255,255,255,0.55); text-decoration: none;
+        transition: all 0.2s; border-radius: 8px; margin-bottom: 2px;
+        font-size: 0.83rem; font-weight: 500; gap: 10px;
+    }
+    .sidebar-menu a:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.9); }
+    .sidebar-menu a.active {
+        background: linear-gradient(135deg, #2f9e44, #69db7c);
+        color: white; box-shadow: 0 4px 15px rgba(47,158,68,0.3);
+    }
+    .sidebar-menu a i { width: 16px; font-size: 0.82rem; text-align: center; }
+    .sidebar-divider { border-color: rgba(255,255,255,0.05); margin: 6px 12px; }
+    .sidebar-user {
+        padding: 14px; border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex; align-items: center; gap: 10px; margin-top: auto;
+    }
+    .user-avatar {
+        width: 34px; height: 34px;
+        background: linear-gradient(135deg, #2f9e44, #69db7c);
+        border-radius: 50%; display: flex; align-items: center;
+        justify-content: center; color: white; font-size: 0.85rem; font-weight: 700; flex-shrink: 0;
+    }
+    .user-info h6 { color: white; margin: 0; font-size: 0.8rem; font-weight: 600; }
+    .user-info small { color: rgba(255,255,255,0.35); font-size: 0.68rem; }
+    .online-dot { width: 8px; height: 8px; background: #51cf66; border-radius: 50%; display: inline-block; margin-left: 4px; }
+
+    .main-wrapper { margin-left: 210px; padding: 25px; min-height: 100vh; background: #f0f2f8; width: calc(100% - 210px); }
+    .top-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; }
+    .top-bar h4 { color: #1a2238; font-weight: 800; font-size: 1.4rem; margin: 0 0 4px; }
+    .top-bar h4 span { color: #2f9e44; }
+    .top-bar p { color: #6c757d; font-size: 0.85rem; margin: 0; }
+    .btn-back {
+        background: white; border: 1.5px solid #e9ecef; border-radius: 10px;
+        padding: 9px 18px; color: #495057; font-weight: 600; font-size: 0.83rem;
+        text-decoration: none; display: inline-flex; align-items: center; gap: 7px; transition: all 0.2s;
+    }
+    .btn-back:hover { border-color: #2f9e44; color: #2f9e44; }
+
+    /* Stat Cards */
+    .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card {
+        background: white; border-radius: 14px; padding: 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.04);
+        display: flex; align-items: center; gap: 14px; transition: all 0.3s;
+    }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+    .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+    .ic-green  { background: linear-gradient(135deg,#ebfbee,#d3f9d8); color: #2f9e44; }
+    .ic-blue   { background: linear-gradient(135deg,#e7f5ff,#d0ebff); color: #1971c2; }
+    .ic-orange { background: linear-gradient(135deg,#fff4e6,#ffe8cc); color: #e67700; }
+    .stat-val  { font-size: 1.7rem; font-weight: 800; color: #1a2238; margin: 0; line-height: 1; }
+    .stat-lbl  { font-size: 0.75rem; color: #6c757d; margin: 3px 0 0; }
+
+    /* Table Card */
+    .main-card {
+        background: white; border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.04); overflow: hidden;
+    }
+    .card-head {
+        padding: 16px 22px; border-bottom: 1px solid #f1f3f5;
+        display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    }
+    .card-head h5 { color: #1a2238; font-weight: 700; font-size: 0.93rem; margin: 0; }
+    .card-head h5 i { color: #2f9e44; margin-right: 7px; }
+    .badge-green { background: #ebfbee; color: #2f9e44; border-radius: 20px; padding: 3px 12px; font-size: 0.73rem; font-weight: 700; }
+
+    .filter-row {
+        padding: 10px 22px; background: #fafafa; border-bottom: 1px solid #f1f3f5;
+        display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    }
+    .f-input {
+        border: 1px solid #e9ecef; border-radius: 8px; padding: 7px 12px;
+        font-size: 0.8rem; color: #1a2238; background: white; outline: none; min-width: 200px;
+    }
+    .f-input:focus { border-color: #2f9e44; }
+    .f-label { font-size: 0.78rem; color: #6c757d; font-weight: 600; }
+
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 800px; }
+    thead tr { background: #f8f9fa; }
+    thead th {
+        padding: 11px 15px; font-size: 0.71rem; font-weight: 700;
+        color: #6c757d; text-transform: uppercase; letter-spacing: 0.8px;
+        border-bottom: 1px solid #f1f3f5; white-space: nowrap; text-align: left;
+    }
+    tbody tr { border-bottom: 1px solid #f8f9fa; transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f0fff4; }
+    tbody td { padding: 13px 15px; font-size: 0.82rem; color: #1a2238; vertical-align: middle; }
+
+    .num-cell { color: #adb5bd; font-size: 0.73rem; font-weight: 700; }
+    .emp-chip { display: inline-flex; align-items: center; gap: 9px; }
+    .emp-av {
+        width: 36px; height: 36px; border-radius: 50%;
+        background: linear-gradient(135deg,#2f9e44,#69db7c);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 0.85rem; font-weight: 700; flex-shrink: 0;
+    }
+    .emp-name  { font-weight: 700; font-size: 0.84rem; margin: 0 0 2px; }
+    .emp-email { font-size: 0.72rem; color: #adb5bd; }
+
+    .skill-tag {
+        display: inline-block; background: #f0fff4; color: #2f9e44;
+        border: 1px solid #d3f9d8; border-radius: 6px;
+        padding: 2px 8px; font-size: 0.68rem; font-weight: 600;
+        margin: 2px 2px 2px 0;
+    }
+
+    /* Workload bar */
+    .wl-wrap { min-width: 110px; }
+    .wl-top  { display: flex; justify-content: space-between; font-size: 0.72rem; margin-bottom: 4px; }
+    .wl-top span:last-child { font-weight: 700; color: #1a2238; }
+    .wl-bar-bg   { height: 6px; background: #f1f3f5; border-radius: 10px; overflow: hidden; }
+    .wl-bar-fill { height: 100%; border-radius: 10px; }
+    .wl-low  { background: linear-gradient(90deg,#2f9e44,#69db7c); }
+    .wl-mid  { background: linear-gradient(90deg,#f59f00,#fcc419); }
+    .wl-high { background: linear-gradient(90deg,#fa5252,#ff8787); }
+
+    .active-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+    .dot-active   { background: #51cf66; }
+    .dot-inactive { background: #adb5bd; }
+
+    .empty-state { text-align: center; padding: 50px 20px; color: #adb5bd; }
+    .empty-state i { font-size: 2.5rem; display: block; margin-bottom: 12px; opacity: 0.4; }
+</style>
+
+<div style="display:flex;">
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo"><i class="fas fa-user-tie"></i></div>
+            <div class="sidebar-brand">
+                <h6>Task Allocation</h6>
+                <small>Manager Panel</small>
+            </div>
+        </div>
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">Main Menu</p>
+            <div class="sidebar-menu">
+                <a href="{{ url_for('manager.dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="{{ url_for('manager.create_task') }}"><i class="fas fa-plus-circle"></i> Create Task</a>
+                <a href="{{ url_for('manager.trigger_allocation') }}"><i class="fas fa-bolt"></i> Trigger Allocation</a>
+            </div>
+        </div>
+        <hr class="sidebar-divider">
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">Reports</p>
+            <div class="sidebar-menu">
+                <a href="{{ url_for('manager.view_tasks') }}"><i class="fas fa-list"></i> View Tasks</a>
+                <a href="{{ url_for('manager.allocation_log') }}"><i class="fas fa-chart-bar"></i> Allocation Report</a>
+                <a href="{{ url_for('manager.employees') }}" class="active"><i class="fas fa-users"></i> Employees</a>
+            </div>
+        </div>
+        <hr class="sidebar-divider">
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">System</p>
+            <div class="sidebar-menu">
+                <a href="/notification/list">
+                    <i class="fas fa-bell"></i> Notifications
+                    {% if (unread_count | default(0)) > 0 %}
+                    <span style="background:#fa5252;color:white;border-radius:10px;padding:1px 6px;font-size:0.65rem;margin-left:auto;">{{ unread_count | default(0) }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('auth.logout') }}" style="color:#fa5252 !important;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+        <div class="sidebar-user">
+            <div class="user-avatar">{{ session.get('user_name','M')[0] }}</div>
+            <div class="user-info">
+                <h6>{{ session.get('user_name','Manager') }} <span class="online-dot"></span></h6>
+                <small>Manager</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="top-bar">
+            <div>
+                <h4><i class="fas fa-users" style="font-size:1.1rem;"></i> <span>Employees</span></h4>
+                <p>All employees — skills, workload and status overview.</p>
+            </div>
+            <a href="{{ url_for('manager.dashboard') }}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <!-- Stat Cards -->
+        {% set total    = emp_data | length %}
+        {% set skilled  = emp_data | selectattr('skills') | list | length %}
+        {% set avg_wl   = (emp_data | sum(attribute='workload.current_tasks') / total) | round(1) if total > 0 else 0 %}
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon ic-green"><i class="fas fa-users"></i></div>
+                <div><p class="stat-val">{{ total }}</p><p class="stat-lbl">Total Employees</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon ic-blue"><i class="fas fa-cogs"></i></div>
+                <div><p class="stat-val">{{ skilled }}</p><p class="stat-lbl">With Skills</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon ic-orange"><i class="fas fa-tasks"></i></div>
+                <div><p class="stat-val">{{ avg_wl }}</p><p class="stat-lbl">Avg Workload</p></div>
+            </div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="main-card">
+            <div class="card-head">
+                <h5><i class="fas fa-users"></i> Employee List</h5>
+                <span class="badge-green">{{ total }} Employees</span>
+            </div>
+            <div class="filter-row">
+                <span class="f-label">Search:</span>
+                <input type="text" class="f-input" id="srchInput"
+                       placeholder="Search by name or email..." oninput="filterTbl()">
+            </div>
+            <div class="tbl-wrap">
+                {% if emp_data %}
+                <table id="empTbl">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Employee</th>
+                            <th>Skills</th>
+                            <th>Current Workload</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in emp_data %}
+                        {% set wl       = item.workload %}
+                        {% set cur      = wl.current_tasks if wl else 0 %}
+                        {% set maxth    = wl.max_threshold if wl else 5 %}
+                        {% set pct      = ([((cur / maxth * 100) | round(0) | int), 100] | min) if maxth > 0 else 0 %}
+                        <tr data-search="{{ item.emp.name | lower }} {{ item.emp.email | lower }}">
+                            <td class="num-cell">{{ loop.index }}</td>
+                            <td>
+                                <div class="emp-chip">
+                                    <div class="emp-av">{{ item.emp.name[0] | upper }}</div>
+                                    <div>
+                                        <p class="emp-name">{{ item.emp.name }}</p>
+                                        <span class="emp-email">{{ item.emp.email }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="max-width:220px;">
+                                {% if item.skills %}
+                                    {% for s in item.skills %}
+                                        <span class="skill-tag">{{ s.skill.name }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span style="color:#adb5bd; font-size:0.75rem;">No skills added</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="wl-wrap">
+                                    <div class="wl-top">
+                                        <span style="color:#6c757d;">Tasks</span>
+                                        <span>{{ cur }}/{{ maxth }}</span>
+                                    </div>
+                                    <div class="wl-bar-bg">
+                                        <div class="wl-bar-fill {{ 'wl-high' if pct >= 80 else ('wl-mid' if pct >= 50 else 'wl-low') }}"
+                                             style="width:{{ pct }}%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="active-dot {{ 'dot-active' if item.emp.is_active else 'dot-inactive' }}"></span>
+                                {{ 'Active' if item.emp.is_active else 'Inactive' }}
+                            </td>
+                            <td style="color:#6c757d; white-space:nowrap;">
+                                {{ item.emp.created_at.strftime('%d %b %Y') }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-users"></i>
+                    <p>No employees found.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterTbl() {
+    const srch = document.getElementById('srchInput').value.toLowerCase();
+    document.querySelectorAll('#empTbl tbody tr').forEach(r => {
+        r.style.display = !srch || r.dataset.search.includes(srch) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

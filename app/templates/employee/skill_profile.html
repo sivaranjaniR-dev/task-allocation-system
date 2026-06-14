@@ -1,0 +1,517 @@
+{% extends 'base.html' %}
+{% set hide_navbar = true %}
+
+{% block title %}Skill Profile - Task Allocation System{% endblock %}
+
+{% block content %}
+<style>
+    body { background: #f0f2f8 !important; }
+
+    .sidebar {
+        height: 100vh; background: #1a2238; padding: 0;
+        display: flex; flex-direction: column;
+        position: fixed; width: 210px; top: 0; left: 0; z-index: 100;
+    }
+    .sidebar-header {
+        padding: 20px 15px; display: flex; align-items: center;
+        gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .sidebar-logo {
+        width: 38px; height: 38px;
+        background: linear-gradient(135deg, #fd7e14, #ffa94d);
+        border-radius: 10px; display: flex; align-items: center;
+        justify-content: center; color: white; font-size: 1rem;
+    }
+    .sidebar-brand h6 { color: white; font-weight: 700; margin: 0; font-size: 0.88rem; }
+    .sidebar-brand small { color: rgba(255,255,255,0.35); font-size: 0.68rem; }
+    .sidebar-section { padding: 15px 12px 5px; }
+    .sidebar-section-title {
+        color: rgba(255,255,255,0.25); font-size: 0.6rem; font-weight: 700;
+        letter-spacing: 2px; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px;
+    }
+    .sidebar-menu a {
+        display: flex; align-items: center; padding: 9px 10px;
+        color: rgba(255,255,255,0.55); text-decoration: none;
+        transition: all 0.2s; border-radius: 8px; margin-bottom: 2px;
+        font-size: 0.83rem; font-weight: 500; gap: 10px;
+    }
+    .sidebar-menu a:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.9); }
+    .sidebar-menu a.active {
+        background: linear-gradient(135deg, #fd7e14, #ffa94d);
+        color: white; box-shadow: 0 4px 15px rgba(253,126,20,0.3);
+    }
+    .sidebar-menu a i { width: 16px; font-size: 0.82rem; text-align: center; }
+    .sidebar-divider { border-color: rgba(255,255,255,0.05); margin: 6px 12px; }
+    .sidebar-user {
+        padding: 14px; border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex; align-items: center; gap: 10px; margin-top: auto;
+    }
+    .user-avatar {
+        width: 34px; height: 34px;
+        background: linear-gradient(135deg, #fd7e14, #ffa94d);
+        border-radius: 50%; display: flex; align-items: center;
+        justify-content: center; color: white; font-size: 0.85rem;
+        font-weight: 700; flex-shrink: 0;
+    }
+    .user-info h6 { color: white; margin: 0; font-size: 0.8rem; font-weight: 600; }
+    .user-info small { color: rgba(255,255,255,0.35); font-size: 0.68rem; }
+    .online-dot {
+        width: 8px; height: 8px; background: #51cf66;
+        border-radius: 50%; display: inline-block; margin-left: 4px;
+    }
+
+    .main-wrapper { margin-left: 210px; padding: 25px; min-height: 100vh; background: #f0f2f8; width: calc(100% - 210px); }
+    .top-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; }
+    .top-bar h4 { color: #1a2238; font-weight: 800; font-size: 1.4rem; margin: 0 0 4px; }
+    .top-bar h4 span { color: #fd7e14; }
+    .top-bar p { color: #6c757d; font-size: 0.85rem; margin: 0; }
+
+    /* Cards */
+    .add-skill-card, .skills-list-card {
+        background: white; border-radius: 14px; padding: 25px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        border: 1px solid rgba(0,0,0,0.04); height: 100%;
+    }
+    .card-title {
+        color: #1a2238; font-weight: 700; font-size: 0.95rem;
+        margin-bottom: 20px; padding-bottom: 12px;
+        border-bottom: 2px solid #f1f3f5;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .card-title i { color: #fd7e14; }
+
+    /* Form */
+    .form-label { color: #495057; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; }
+    .form-control, .form-select {
+        border-radius: 8px; border: 1px solid #e9ecef;
+        padding: 10px 14px; font-size: 0.85rem; color: #1a2238; transition: all 0.2s;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #fd7e14; box-shadow: 0 0 0 3px rgba(253,126,20,0.1); outline: none;
+    }
+    textarea.form-control { resize: vertical; }
+
+    /* Cert panel toggle */
+    .cert-panel {
+        background: #fff9f0; border: 1px solid #ffe0b2;
+        border-radius: 8px; padding: 12px 14px; margin-top: 8px; display: none;
+    }
+    .cert-panel.show { display: block; }
+
+    .btn-add {
+        background: linear-gradient(135deg, #fd7e14, #ffa94d);
+        border: none; border-radius: 10px; padding: 11px 25px;
+        color: white; font-weight: 700; font-size: 0.88rem;
+        transition: all 0.3s; cursor: pointer; width: 100%;
+        display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 5px;
+    }
+    .btn-add:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(253,126,20,0.3); }
+
+    /* Level guide */
+    .level-guide { background: #f8f9fa; border-radius: 10px; padding: 14px; margin-bottom: 16px; }
+    .level-guide-title {
+        color: #6c757d; font-size: 0.72rem; font-weight: 700;
+        margin: 0 0 10px; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .level-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .level-item:last-child { margin-bottom: 0; }
+    .lvl-num {
+        border-radius: 5px; padding: 2px 8px; font-size: 0.7rem;
+        font-weight: 700; min-width: 22px; text-align: center;
+    }
+    .lvl-desc { color: #6c757d; font-size: 0.78rem; }
+
+    /* Stats */
+    .skill-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+    .stat-mini { background: #f8f9fa; border-radius: 10px; padding: 12px; text-align: center; border: 1px solid #e9ecef; }
+    .stat-mini h5 { color: #fd7e14; font-weight: 800; font-size: 1.4rem; margin: 0 0 3px; }
+    .stat-mini p  { color: #6c757d; font-size: 0.72rem; margin: 0; }
+
+    /* Skill rows */
+    .skill-row {
+        display: flex; align-items: flex-start; gap: 15px;
+        padding: 14px 0; border-bottom: 1px solid #f8f9fa; transition: all 0.2s;
+    }
+    .skill-row:last-child { border-bottom: none; }
+    .skill-row:hover { background: #fff9f5; border-radius: 10px; padding: 14px 10px; }
+    .skill-icon-box {
+        width: 42px; height: 42px; border-radius: 12px;
+        background: linear-gradient(135deg, #fff4e6, #ffe8cc);
+        border: 1px solid #ffe0b2; display: flex; align-items: center;
+        justify-content: center; color: #fd7e14; font-size: 1rem;
+        flex-shrink: 0; margin-top: 2px;
+    }
+    .skill-info { flex: 1; min-width: 0; }
+    .skill-name { color: #1a2238; font-size: 0.88rem; font-weight: 700; margin: 0 0 5px; }
+    .skill-dots { display: flex; gap: 4px; align-items: center; margin-bottom: 6px; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: #e9ecef; transition: all 0.2s; }
+    .dot.filled { background: linear-gradient(135deg, #fd7e14, #ffa94d); }
+    .proficiency-tag { padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; margin-left: 8px; }
+    .tag-beginner     { background: #f1f3f5; color: #6c757d; }
+    .tag-basic        { background: #e7f5ff; color: #1971c2; }
+    .tag-intermediate { background: #fff4e6; color: #e67700; }
+    .tag-advanced     { background: #ebfbee; color: #2f9e44; }
+    .tag-expert       { background: linear-gradient(135deg, #fd7e14, #ffa94d); color: white; }
+
+    /* NEW meta chips */
+    .skill-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; align-items: center; }
+    .meta-chip {
+        display: inline-flex; align-items: center; gap: 4px;
+        background: #f8f9fa; border: 1px solid #e9ecef;
+        border-radius: 20px; padding: 2px 9px; font-size: 0.72rem;
+        color: #6c757d; font-weight: 500;
+    }
+    .meta-chip i { font-size: 0.65rem; color: #fd7e14; }
+    .cert-chip { background: #f0fff4; border-color: #b2f2bb; color: #2f9e44; }
+    .cert-chip i { color: #2f9e44; }
+    .remarks-line { font-size: 0.75rem; color: #adb5bd; font-style: italic; margin-top: 5px; }
+
+    .btn-delete {
+        width: 32px; height: 32px; border-radius: 8px;
+        background: #fff5f5; border: 1px solid #ffc9c9;
+        color: #fa5252; display: flex; align-items: center;
+        justify-content: center; text-decoration: none;
+        font-size: 0.78rem; transition: all 0.2s; flex-shrink: 0;
+    }
+    .btn-delete:hover { background: #fa5252; color: white; transform: scale(1.1); }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: #adb5bd; }
+    .empty-state i { font-size: 2.5rem; margin-bottom: 12px; display: block; opacity: 0.5; }
+    .empty-state p { font-size: 0.85rem; margin: 0; }
+
+    .alert-custom { border-radius: 10px; padding: 12px 16px; font-size: 0.83rem; font-weight: 500; margin-bottom: 20px; border: none; }
+</style>
+
+<div style="display:flex;">
+
+    <!-- ══ SIDEBAR ════════════════════════════════════════════ -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo"><i class="fas fa-user"></i></div>
+            <div class="sidebar-brand">
+                <h6>Task Allocation</h6>
+                <small>Employee Panel</small>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">Main Menu</p>
+            <div class="sidebar-menu">
+                <a href="/employee/dashboard"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="/employee/profile"><i class="fas fa-user-circle"></i> My Profile</a>
+                <a href="/employee/skill_profile" class="active"><i class="fas fa-cogs"></i> Skill Profile</a>
+            </div>
+        </div>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">Tasks</p>
+            <div class="sidebar-menu">
+                <a href="/employee/view_tasks"><i class="fas fa-list"></i> View Tasks</a>
+                <a href="/employee/allocation_explanation"><i class="fas fa-info-circle"></i> Allocation Info</a>
+                <a href="/employee/update_task_status"><i class="fas fa-edit"></i> Update Status</a>
+            </div>
+        </div>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">System</p>
+            <div class="sidebar-menu">
+                <a href="/notification/list">
+                    <i class="fas fa-bell"></i> Notifications
+                    {% if (unread_count | default(0)) > 0 %}
+                    <span style="background:#fa5252;color:white;border-radius:10px;padding:1px 6px;font-size:0.65rem;margin-left:auto;">{{ unread_count | default(0) }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('auth.logout') }}" style="color:#fa5252 !important;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="user-avatar">{{ session.get('user_name', 'U')[0] }}</div>
+            <div class="user-info">
+                <h6>{{ session.get('user_name', 'User') }} <span class="online-dot"></span></h6>
+                <small>Employee</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ MAIN CONTENT ═══════════════════════════════════════ -->
+    <div class="main-wrapper">
+
+        <div class="top-bar">
+            <div>
+                <h4>Skill <span>Profile</span></h4>
+                <p>Manage your skills and proficiency levels.</p>
+            </div>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert-custom alert alert-{{ category }}">
+                    <i class="fas fa-{% if category == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row g-4">
+
+            <!-- ── LEFT: Add New Skill Form ───────────────────── -->
+            <div class="col-md-6">
+                <div class="add-skill-card">
+                    <p class="card-title"><i class="fas fa-plus-circle"></i> Add New Skill</p>
+
+                    <form method="POST" action="/employee/skill_profile">
+
+                        <!-- 1. Select Skill -->
+                        <div class="mb-3">
+                            <label class="form-label">Select Skill</label>
+                            <select name="skill_id" class="form-select" required>
+                                <option value="">Choose a skill...</option>
+                                {% for skill in all_skills %}
+                                <option value="{{ skill.id }}">{{ skill.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- 2. Proficiency Level -->
+                        <div class="mb-3">
+                            <label class="form-label">Proficiency Level</label>
+                            <select name="proficiency_level" class="form-select" required>
+                                <option value="">Select level...</option>
+                                <option value="1">1 — Beginner</option>
+                                <option value="2">2 — Basic</option>
+                                <option value="3">3 — Intermediate</option>
+                                <option value="4">4 — Advanced</option>
+                                <option value="5">5 — Expert</option>
+                            </select>
+                        </div>
+
+                        <!-- 3. Years of Experience (NEW) -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-clock" style="color:#fd7e14;margin-right:4px;"></i>
+                                Years of Experience
+                            </label>
+                            <input type="number"
+                                   name="years_of_experience"
+                                   class="form-control"
+                                   step="0.1" min="0" max="50"
+                                   placeholder="e.g. 2.5"
+                                   required>
+                        </div>
+
+                        <!-- 4. Certified (NEW) -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-certificate" style="color:#fd7e14;margin-right:4px;"></i>
+                                Certification
+                            </label>
+                            <div class="form-check">
+                                <input type="checkbox"
+                                       class="form-check-input"
+                                       name="certified"
+                                       id="certCheck"
+                                       onchange="toggleCert()">
+                                <label class="form-check-label" for="certCheck"
+                                       style="font-size:0.83rem;color:#495057;">
+                                    I am certified in this skill
+                                </label>
+                            </div>
+                            <!-- Certification name — visible only when checked -->
+                            <div class="cert-panel" id="certPanel">
+                                <label class="form-label" style="margin-bottom:5px;margin-top:0;">
+                                    Certification Name
+                                </label>
+                                <input type="text"
+                                       name="certification_name"
+                                       class="form-control"
+                                       id="certNameInput"
+                                       placeholder="e.g. AWS Certified Developer"
+                                       maxlength="50">
+                            </div>
+                        </div>
+
+                        <!-- 5. Remarks (NEW) -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-sticky-note" style="color:#fd7e14;margin-right:4px;"></i>
+                                Remarks
+                            </label>
+                            <textarea name="remarks"
+                                      class="form-control"
+                                      rows="2"
+                                      placeholder="Additional notes about this skill..."
+                                      maxlength="100"></textarea>
+                        </div>
+
+                        <!-- Level Guide -->
+                        <div class="level-guide">
+                            <p class="level-guide-title">Level Guide</p>
+                            <div class="level-item">
+                                <span class="lvl-num" style="background:#f1f3f5;color:#6c757d;">1</span>
+                                <span class="lvl-desc">Beginner — Just started learning</span>
+                            </div>
+                            <div class="level-item">
+                                <span class="lvl-num" style="background:#e7f5ff;color:#1971c2;">2</span>
+                                <span class="lvl-desc">Basic — Know the fundamentals</span>
+                            </div>
+                            <div class="level-item">
+                                <span class="lvl-num" style="background:#fff4e6;color:#e67700;">3</span>
+                                <span class="lvl-desc">Intermediate — Can work independently</span>
+                            </div>
+                            <div class="level-item">
+                                <span class="lvl-num" style="background:#ebfbee;color:#2f9e44;">4</span>
+                                <span class="lvl-desc">Advanced — Deep knowledge</span>
+                            </div>
+                            <div class="level-item">
+                                <span class="lvl-num" style="background:linear-gradient(135deg,#fd7e14,#ffa94d);color:white;">5</span>
+                                <span class="lvl-desc">Expert — Master level</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-add">
+                            <i class="fas fa-plus"></i> Add Skill
+                        </button>
+
+                    </form>
+                </div>
+            </div>
+
+            <!-- ── RIGHT: My Skills List ──────────────────────── -->
+            <div class="col-md-6">
+                <div class="skills-list-card">
+                    <p class="card-title">
+                        <i class="fas fa-list"></i> My Skills
+                        <span style="background:#fff4e6;color:#fd7e14;border-radius:20px;padding:3px 10px;font-size:0.72rem;font-weight:700;margin-left:auto;">
+                            {{ my_skills|length }} Skills
+                        </span>
+                    </p>
+
+                    <!-- Stats row -->
+                    {% if my_skills %}
+                    <div class="skill-stats">
+                        <div class="stat-mini">
+                            <h5>{{ my_skills|length }}</h5>
+                            <p>Total Skills</p>
+                        </div>
+                        <div class="stat-mini">
+                            <h5>{{ my_skills|selectattr('proficiency_level','ge',4)|list|length }}</h5>
+                            <p>Advanced+</p>
+                        </div>
+                        <div class="stat-mini">
+                            <h5>{{ ((my_skills|sum(attribute='proficiency_level')) / my_skills|length)|round(1) }}</h5>
+                            <p>Avg Level</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- ── Each skill row ── -->
+                    {% for emp_skill in my_skills %}
+                    <div class="skill-row">
+
+                        <div class="skill-icon-box">
+                            <i class="fas fa-code"></i>
+                        </div>
+
+                        <div class="skill-info">
+
+                            <!-- Skill name -->
+                            <p class="skill-name">{{ emp_skill.skill.name }}</p>
+
+                            <!-- Proficiency dots + badge -->
+                            <div class="skill-dots">
+                                {% for i in range(1, 6) %}
+                                <div class="dot {% if i <= emp_skill.proficiency_level %}filled{% endif %}"></div>
+                                {% endfor %}
+                                <span class="proficiency-tag
+                                    {% if emp_skill.proficiency_level == 1 %}tag-beginner
+                                    {% elif emp_skill.proficiency_level == 2 %}tag-basic
+                                    {% elif emp_skill.proficiency_level == 3 %}tag-intermediate
+                                    {% elif emp_skill.proficiency_level == 4 %}tag-advanced
+                                    {% else %}tag-expert{% endif %}">
+                                    {% if emp_skill.proficiency_level == 1 %}Beginner
+                                    {% elif emp_skill.proficiency_level == 2 %}Basic
+                                    {% elif emp_skill.proficiency_level == 3 %}Intermediate
+                                    {% elif emp_skill.proficiency_level == 4 %}Advanced
+                                    {% else %}Expert{% endif %}
+                                </span>
+                            </div>
+
+                            <!-- Meta chips: years of exp + cert (NEW fields) -->
+                            <div class="skill-meta">
+                                {% if emp_skill.years_of_experience is not none %}
+                                <span class="meta-chip">
+                                    <i class="fas fa-clock"></i>
+                                    {{ emp_skill.years_of_experience }} yrs
+                                </span>
+                                {% endif %}
+
+                                {% if emp_skill.certified %}
+                                <span class="meta-chip cert-chip">
+                                    <i class="fas fa-certificate"></i>
+                                    {{ emp_skill.certification_name if emp_skill.certification_name else 'Certified' }}
+                                </span>
+                                {% else %}
+                                <span class="meta-chip">
+                                    <i class="fas fa-times-circle" style="color:#adb5bd;"></i>
+                                    No Cert
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Remarks (NEW field) -->
+                            {% if emp_skill.remarks %}
+                            <div class="remarks-line">
+                                <i class="fas fa-quote-left" style="font-size:0.6rem;margin-right:3px;"></i>
+                                {{ emp_skill.remarks }}
+                            </div>
+                            {% endif %}
+
+                        </div>
+
+                        <!-- Delete -->
+                        <a href="/employee/delete_skill/{{ emp_skill.id }}"
+                           class="btn-delete"
+                           onclick="return confirm('Delete this skill?')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+
+                    </div>
+                    {% endfor %}
+
+                    {% if not my_skills %}
+                    <div class="empty-state">
+                        <i class="fas fa-cogs"></i>
+                        <p>No skills added yet!</p>
+                        <p style="font-size:0.78rem;margin-top:5px;">Add your first skill using the form.</p>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+        </div><!-- /row -->
+    </div><!-- /main-wrapper -->
+</div>
+
+<script>
+function toggleCert() {
+    const cb    = document.getElementById('certCheck');
+    const panel = document.getElementById('certPanel');
+    panel.classList.toggle('show', cb.checked);
+    if (!cb.checked) {
+        document.getElementById('certNameInput').value = '';
+    }
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,386 @@
+{% extends 'base.html' %}
+{% set hide_navbar = true %}
+
+{% block title %}View Tasks - Task Allocation System{% endblock %}
+
+{% block content %}
+<style>
+    body { background: #f0f2f8 !important; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+        height: 100vh; background: #1a2238; padding: 0;
+        display: flex; flex-direction: column;
+        position: fixed; width: 210px; top: 0; left: 0; z-index: 100;
+    }
+    .sidebar-header {
+        padding: 20px 15px; display: flex; align-items: center;
+        gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .sidebar-logo {
+        width: 38px; height: 38px;
+        background: linear-gradient(135deg, #2f9e44, #69db7c);
+        border-radius: 10px; display: flex; align-items: center;
+        justify-content: center; color: white; font-size: 1rem;
+    }
+    .sidebar-brand h6 { color: white; font-weight: 700; margin: 0; font-size: 0.88rem; }
+    .sidebar-brand small { color: rgba(255,255,255,0.35); font-size: 0.68rem; }
+    .sidebar-section { padding: 15px 12px 5px; }
+    .sidebar-section-title {
+        color: rgba(255,255,255,0.25); font-size: 0.6rem; font-weight: 700;
+        letter-spacing: 2px; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px;
+    }
+    .sidebar-menu a {
+        display: flex; align-items: center; padding: 9px 10px;
+        color: rgba(255,255,255,0.55); text-decoration: none;
+        transition: all 0.2s; border-radius: 8px; margin-bottom: 2px;
+        font-size: 0.83rem; font-weight: 500; gap: 10px;
+    }
+    .sidebar-menu a:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.9); }
+    .sidebar-menu a.active {
+        background: linear-gradient(135deg, #2f9e44, #69db7c);
+        color: white; box-shadow: 0 4px 15px rgba(47,158,68,0.3);
+    }
+    .sidebar-menu a i { width: 16px; font-size: 0.82rem; text-align: center; }
+    .sidebar-divider { border-color: rgba(255,255,255,0.05); margin: 6px 12px; }
+    .sidebar-user {
+        padding: 14px; border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex; align-items: center; gap: 10px; margin-top: auto;
+    }
+    .user-avatar {
+        width: 34px; height: 34px;
+        background: linear-gradient(135deg, #2f9e44, #69db7c);
+        border-radius: 50%; display: flex; align-items: center;
+        justify-content: center; color: white; font-size: 0.85rem; font-weight: 700; flex-shrink: 0;
+    }
+    .user-info h6 { color: white; margin: 0; font-size: 0.8rem; font-weight: 600; }
+    .user-info small { color: rgba(255,255,255,0.35); font-size: 0.68rem; }
+    .online-dot { width: 8px; height: 8px; background: #51cf66; border-radius: 50%; display: inline-block; margin-left: 4px; }
+
+    /* ── Main ── */
+.main-wrapper { margin-left:210px; padding:25px; min-height:100vh; background:#f0f2f8; box-sizing:border-box; width:calc(100% - 210px); }    .top-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; flex-wrap: wrap; gap: 14px; }
+    .top-bar h4 { color: #1a2238; font-weight: 800; font-size: 1.4rem; margin: 0 0 4px; }
+    .top-bar h4 span { color: #2f9e44; }
+    .top-bar p { color: #6c757d; font-size: 0.85rem; margin: 0; }
+
+    .btn-create {
+        background: linear-gradient(135deg, #2f9e44, #69db7c);
+        border: none; border-radius: 10px; padding: 10px 20px;
+        color: white; font-weight: 700; font-size: 0.85rem;
+        cursor: pointer; display: inline-flex; align-items: center;
+        gap: 7px; text-decoration: none; transition: all 0.3s;
+    }
+    .btn-create:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(47,158,68,0.35); color: white; }
+
+    /* ── Stat Cards ── */
+    .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card {
+        background: white; border-radius: 14px; padding: 18px 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.04);
+        display: flex; align-items: center; gap: 14px; transition: all 0.3s;
+    }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+    .stat-icon {
+        width: 46px; height: 46px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;
+    }
+    .ic-green  { background: linear-gradient(135deg,#ebfbee,#d3f9d8); color: #2f9e44; }
+    .ic-orange { background: linear-gradient(135deg,#fff4e6,#ffe8cc); color: #e67700; }
+    .ic-blue   { background: linear-gradient(135deg,#e7f5ff,#d0ebff); color: #1971c2; }
+    .ic-check  { background: linear-gradient(135deg,#ebfbee,#d3f9d8); color: #2f9e44; }
+    .stat-val  { font-size: 1.6rem; font-weight: 800; color: #1a2238; margin: 0; line-height: 1; }
+    .stat-lbl  { font-size: 0.75rem; color: #6c757d; margin: 3px 0 0; }
+
+    /* ── Main Card ── */
+    .main-card {
+        background: white; border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        border: 1px solid rgba(0,0,0,0.04); overflow: hidden;
+    }
+    .card-head {
+        padding: 18px 22px; border-bottom: 1px solid #f1f3f5;
+        display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    }
+    .card-head h5 { color: #1a2238; font-weight: 700; font-size: 0.95rem; margin: 0; }
+    .card-head h5 i { color: #2f9e44; margin-right: 6px; }
+    .count-badge { background: #ebfbee; color: #2f9e44; border-radius: 20px; padding: 3px 12px; font-size: 0.75rem; font-weight: 700; }
+
+    /* filter row */
+    .filter-row {
+        padding: 12px 22px; background: #fafafa; border-bottom: 1px solid #f1f3f5;
+        display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    }
+    .f-select, .f-input {
+        border: 1px solid #e9ecef; border-radius: 8px; padding: 7px 12px;
+        font-size: 0.8rem; color: #1a2238; background: white; outline: none;
+    }
+    .f-select:focus, .f-input:focus { border-color: #2f9e44; }
+    .f-input { min-width: 200px; }
+    .f-label { font-size: 0.78rem; color: #6c757d; font-weight: 600; }
+
+    /* ── Table ── */
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 860px; }
+    thead tr { background: #f8f9fa; }
+    thead th {
+        padding: 11px 15px; font-size: 0.71rem; font-weight: 700;
+        color: #6c757d; text-transform: uppercase; letter-spacing: 0.8px;
+        border-bottom: 1px solid #f1f3f5; white-space: nowrap; text-align: left;
+    }
+    tbody tr { border-bottom: 1px solid #f8f9fa; transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f0fff4; }
+    tbody td { padding: 13px 15px; font-size: 0.83rem; color: #1a2238; vertical-align: middle; }
+
+    .num-cell { color: #adb5bd; font-size: 0.75rem; font-weight: 700; }
+    .task-title { font-weight: 700; font-size: 0.85rem; margin: 0 0 3px; }
+    .task-desc  { font-size: 0.75rem; color: #adb5bd; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .priority-badge { padding: 3px 10px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; white-space: nowrap; }
+    .p-high   { background: #fff0f0; color: #c92a2a; }
+    .p-medium { background: #fff4e6; color: #e67700; }
+    .p-low    { background: #ebfbee; color: #2f9e44; }
+
+    .status-badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 20px; padding: 4px 11px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; }
+    .st-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+    .s-pending   { background: #fff4e6; color: #e67700; }
+    .s-pending   .st-dot { background: #e67700; }
+    .s-assigned  { background: #e7f5ff; color: #1971c2; }
+    .s-assigned  .st-dot { background: #1971c2; }
+    .s-completed { background: #ebfbee; color: #2f9e44; }
+    .s-completed .st-dot { background: #2f9e44; }
+
+    .hours-cell { white-space: nowrap; color: #6c757d; }
+    .deadline-cell { white-space: nowrap; }
+    .deadline-near { color: #fa5252; font-weight: 600; }
+
+    .empty-state { text-align: center; padding: 50px 20px; color: #adb5bd; }
+    .empty-state i { font-size: 2.5rem; display: block; margin-bottom: 12px; opacity: 0.4; }
+    .empty-state p { font-size: 0.85rem; margin: 0; }
+</style>
+
+<div style="display:flex;">
+
+    <!-- ── Sidebar ── -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo"><i class="fas fa-user-tie"></i></div>
+            <div class="sidebar-brand">
+                <h6>Task Allocation</h6>
+                <small>Manager Panel</small>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">Main Menu</p>
+            <div class="sidebar-menu">
+                <a href="{{ url_for('manager.dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="{{ url_for('manager.create_task') }}"><i class="fas fa-plus-circle"></i> Create Task</a>
+                <a href="{{ url_for('manager.trigger_allocation') }}"><i class="fas fa-bolt"></i> Trigger Allocation</a>
+            </div>
+        </div>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">Reports</p>
+            <div class="sidebar-menu">
+                <a href="{{ url_for('manager.view_tasks') }}" class="active"><i class="fas fa-list"></i> View Tasks</a>
+                <a href="{{ url_for('manager.allocation_log') }}"><i class="fas fa-history"></i> Allocation Log</a>
+                <a href="{{ url_for('manager.employees') }}"><i class="fas fa-users"></i> Employees</a>
+            </div>
+        </div>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">System</p>
+            <div class="sidebar-menu">
+                <a href="/notification/list">
+                    <i class="fas fa-bell"></i> Notifications
+                    {% if (unread_count | default(0)) > 0 %}
+                    <span style="background:#fa5252;color:white;border-radius:10px;padding:1px 6px;font-size:0.65rem;margin-left:auto;">{{ unread_count | default(0) }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('auth.logout') }}" style="color:#fa5252 !important;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="user-avatar">{{ session.get('user_name', 'M')[0] }}</div>
+            <div class="user-info">
+                <h6>{{ session.get('user_name', 'Manager') }} <span class="online-dot"></span></h6>
+                <small>Manager</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Main Content ── -->
+    <div class="main-wrapper">
+
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div>
+                <h4><i class="fas fa-list" style="font-size:1.1rem;"></i> All <span>Tasks</span></h4>
+                <p>Overview of all tasks created in the system.</p>
+            </div>
+            <a href="{{ url_for('manager.dashboard') }}" class="btn-create">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <!-- Stat Cards -->
+        {% set total     = tasks | length %}
+        {% set pending   = tasks | selectattr('status','equalto','pending')   | list | length %}
+        {% set assigned  = tasks | selectattr('status','equalto','assigned')  | list | length %}
+        {% set completed = tasks | selectattr('status','equalto','completed') | list | length %}
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon ic-green"><i class="fas fa-tasks"></i></div>
+                <div>
+                    <p class="stat-val">{{ total }}</p>
+                    <p class="stat-lbl">Total Tasks</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon ic-orange"><i class="fas fa-hourglass-half"></i></div>
+                <div>
+                    <p class="stat-val">{{ pending }}</p>
+                    <p class="stat-lbl">Pending</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon ic-blue"><i class="fas fa-user-check"></i></div>
+                <div>
+                    <p class="stat-val">{{ assigned }}</p>
+                    <p class="stat-lbl">Assigned</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon ic-check"><i class="fas fa-check-double"></i></div>
+                <div>
+                    <p class="stat-val">{{ completed }}</p>
+                    <p class="stat-lbl">Completed</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="main-card">
+            <div class="card-head">
+                <h5><i class="fas fa-list"></i> Task List</h5>
+                <span class="count-badge">{{ total }} Records</span>
+            </div>
+
+            <!-- Filters -->
+            <div class="filter-row">
+                <span class="f-label">Filter:</span>
+                <select class="f-select" id="stFilter" onchange="filterTbl()">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="assigned">Assigned</option>
+                    <option value="completed">Completed</option>
+                </select>
+                <select class="f-select" id="prFilter" onchange="filterTbl()">
+                    <option value="">All Priority</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+                <input type="text" class="f-input" id="srchInput"
+                       placeholder="Search task title..."
+                       oninput="filterTbl()">
+            </div>
+
+            <div class="tbl-wrap">
+                {% if tasks %}
+                <table id="taskTbl">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Task Title</th>
+                            <th>Description</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Est. Hours</th>
+                            <th>Deadline</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for task in tasks %}
+                        <tr data-status="{{ task.status }}"
+                            data-priority="{{ task.priority or 'medium' }}"
+                            data-search="{{ task.title | lower }}">
+                            <td class="num-cell">{{ loop.index }}</td>
+                            <td>
+                                <p class="task-title">{{ task.title }}</p>
+                            </td>
+                            <td>
+                                <span class="task-desc">{{ task.description }}</span>
+                            </td>
+                            <td>
+                                {% set pr = task.priority or 'medium' %}
+                                <span class="priority-badge p-{{ pr }}">
+                                    {% if pr == 'high' %}<i class="fas fa-arrow-up"></i>
+                                    {% elif pr == 'medium' %}<i class="fas fa-minus"></i>
+                                    {% else %}<i class="fas fa-arrow-down"></i>{% endif %}
+                                    {{ pr | capitalize }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="status-badge s-{{ task.status }}">
+                                    <span class="st-dot"></span>
+                                    {{ task.status | capitalize }}
+                                </span>
+                            </td>
+                            <td class="hours-cell">
+                                <i class="fas fa-clock" style="color:#adb5bd;margin-right:4px;"></i>
+                                {{ task.estimated_hours or '—' }} hrs
+                            </td>
+                            <td class="deadline-cell">
+                                {% if task.deadline %}
+                                    <i class="fas fa-calendar-alt" style="color:#adb5bd;margin-right:4px;"></i>
+                                    {{ task.deadline.strftime('%d %b %Y') }}
+                                {% else %}
+                                    <span style="color:#adb5bd;">—</span>
+                                {% endif %}
+                            </td>
+                            <td style="color:#6c757d; white-space:nowrap;">
+                                {{ task.created_at.strftime('%d %b %Y') }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-clipboard-list"></i>
+                    <p style="font-weight:700; margin-bottom:5px;">No tasks found</p>
+                    <p style="font-size:0.78rem;">Click <strong>Create Task</strong> to add your first task.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function filterTbl() {
+    const st   = document.getElementById('stFilter').value;
+    const pr   = document.getElementById('prFilter').value;
+    const srch = document.getElementById('srchInput').value.toLowerCase();
+    document.querySelectorAll('#taskTbl tbody tr').forEach(r => {
+        const ms = !st   || r.dataset.status   === st;
+        const mp = !pr   || r.dataset.priority  === pr;
+        const mr = !srch || r.dataset.search.includes(srch);
+        r.style.display = (ms && mp && mr) ? '' : 'none';
+    });
+}
+</script>
+
+{% endblock %}

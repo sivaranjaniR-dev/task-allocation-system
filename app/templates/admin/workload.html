@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Set Workload Threshold - Task Allocation System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h3><i class="fas fa-weight"></i> Set Workload Threshold</h3>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <i class="fas fa-users"></i> Employee Workload Settings
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Employee Name</th>
+                            <th>Email</th>
+                            <th>Current Tasks</th>
+                            <th>Max Threshold</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for w in workloads %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ w.employee.name }}</td>
+                            <td>{{ w.employee.email }}</td>
+                            <td>{{ w.current_tasks }}</td>
+                            <td>
+                                <form method="POST" action="/admin/set_workload/{{ w.id }}">
+                                    <div class="input-group">
+                                        <input type="number" name="max_threshold" 
+                                               class="form-control form-control-sm" 
+                                               value="{{ w.max_threshold }}" min="1" max="20">
+                                        <button type="submit" class="btn btn-sm btn-dark">
+                                            <i class="fas fa-save"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </td>
+                            <td>
+                                {% if w.current_tasks >= w.max_threshold %}
+                                    <span class="badge bg-danger">Overloaded</span>
+                                {% else %}
+                                    <span class="badge bg-success">Available</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

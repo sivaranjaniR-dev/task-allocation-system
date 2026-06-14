@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications - Task Allocation System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h3><i class="fas fa-bell"></i> Notifications</h3>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white d-flex justify-content-between">
+                <span><i class="fas fa-bell"></i> My Notifications</span>
+                <a href="/notification/mark_all_read" class="btn btn-sm btn-light">
+                    <i class="fas fa-check"></i> Mark All Read
+                </a>
+            </div>
+            <div class="card-body">
+                {% if notifications %}
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Message</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for notification in notifications %}
+                        <tr class="{% if not notification.is_read %}table-warning{% endif %}">
+                            <td>{{ loop.index }}</td>
+                            <td>{{ notification.message }}</td>
+                            <td>
+                                {% if notification.is_read %}
+                                    <span class="badge bg-success">Read</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Unread</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ notification.created_at.strftime('%d-%m-%Y %H:%M') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No notifications!
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

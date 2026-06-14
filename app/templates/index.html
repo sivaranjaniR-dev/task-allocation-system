@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Allocation System - TechNova Solutions</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #020818;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 20px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(2, 8, 24, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .nav-logo-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #3b5bdb, #4dabf7);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: white;
+        }
+
+        .nav-logo-text h6 {
+            color: white;
+            font-weight: 700;
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .nav-logo-text small {
+            color: rgba(255,255,255,0.4);
+            font-size: 0.7rem;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            list-style: none;
+            margin: 0;
+        }
+
+        .nav-links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover { color: #4dabf7; }
+
+        .nav-btns {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-login {
+            padding: 8px 22px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            background: transparent;
+        }
+
+        .btn-login:hover {
+            border-color: #4dabf7;
+            color: #4dabf7;
+        }
+
+        .btn-register {
+            padding: 8px 22px;
+            background: linear-gradient(135deg, #3b5bdb, #4dabf7);
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59,91,219,0.4);
+            color: white;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('/static/images/landing_bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                135deg,
+                rgba(2,8,24,0.85) 0%,
+                rgba(2,8,24,0.6) 50%,
+                rgba(2,8,24,0.3) 100%
+            );
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            padding: 0 60px;
+            max-width: 600px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(59,91,219,0.15);
+            border: 1px solid rgba(59,91,219,0.3);
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 0.78rem;
+            color: #4dabf7;
+            font-weight: 600;
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 20px;
+        }
+
+        .hero-title span { color: #4dabf7; }
+
+        .hero-subtitle {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.65);
+            line-height: 1.7;
+            margin-bottom: 35px;
+            max-width: 480px;
+        }
+
+        .hero-btns {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn-get-started {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #3b5bdb, #4dabf7);
+            border-radius: 10px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 700;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 8px 30px rgba(59,91,219,0.4);
+        }
+
+        .btn-get-started:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(59,91,219,0.5);
+            color: white;
+        }
+
+        .btn-learn-more {
+            padding: 14px 32px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-learn-more:hover {
+            border-color: #4dabf7;
+            color: #4dabf7;
+            transform: translateY(-3px);
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            position: relative;
+            z-index: 10;
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 30px 60px;
+            display: flex;
+            justify-content: center;
+            gap: 80px;
+        }
+
+        .stat-item { text-align: center; }
+
+        .stat-item h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #4dabf7;
+            margin: 0;
+        }
+
+        .stat-item p {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.5);
+            margin: 4px 0 0;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 100px 60px;
+            background: #020818;
+        }
+
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(59,91,219,0.1);
+            border: 1px solid rgba(59,91,219,0.2);
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 0.75rem;
+            color: #4dabf7;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .section-title span { color: #4dabf7; }
+
+        .section-subtitle {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.95rem;
+            margin-bottom: 60px;
+            max-width: 500px;
+        }
+
+        .feature-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px;
+            padding: 35px 30px;
+            transition: all 0.3s;
+            height: 100%;
+        }
+
+        .feature-card:hover {
+            background: rgba(59,91,219,0.08);
+            border-color: rgba(59,91,219,0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h5 {
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.88rem;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        /* How it Works */
+        .how-it-works {
+            padding: 100px 60px;
+            background: rgba(255,255,255,0.01);
+        }
+
+        .step-card {
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .step-number {
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(135deg, #3b5bdb, #4dabf7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: white;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 25px rgba(59,91,219,0.4);
+        }
+
+        .step-card h5 {
+            color: white;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .step-card p {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .step-connector {
+            position: absolute;
+            top: 27px;
+            right: -50%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, #3b5bdb, transparent);
+        }
+
+        /* Roles Section */
+        .roles {
+            padding: 100px 60px;
+            background: #020818;
+        }
+
+        .role-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px;
+            padding: 35px 30px;
+            transition: all 0.3s;
+            height: 100%;
+        }
+
+        .role-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        .role-icon {
+            width: 65px;
+            height: 65px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+        }
+
+        .role-card h5 {
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        .role-feature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.85rem;
+        }
+
+        .role-feature i { color: #4dabf7; font-size: 0.75rem; }
+
+        /* CTA Section */
+        .cta {
+            padding: 100px 60px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(59,91,219,0.15), rgba(77,171,247,0.05));
+            border-top: 1px solid rgba(59,91,219,0.2);
+            border-bottom: 1px solid rgba(59,91,219,0.2);
+        }
+
+        .cta h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+
+        .cta h2 span { color: #4dabf7; }
+
+        .cta p {
+            color: rgba(255,255,255,0.6);
+            font-size: 1rem;
+            margin-bottom: 35px;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 40px 60px;
+            background: #020818;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer p {
+            color: rgba(255,255,255,0.3);
+            font-size: 0.82rem;
+            margin: 0;
+        }
+
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .floating { animation: float 3s ease-in-out infinite; }
+
+        /* Glow dots */
+        .glow-dot {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .glow-1 {
+            width: 400px;
+            height: 400px;
+            background: #3b5bdb;
+            top: -100px;
+            left: -100px;
+        }
+
+        .glow-2 {
+            width: 300px;
+            height: 300px;
+            background: #4dabf7;
+            bottom: -50px;
+            right: 200px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="/" class="nav-logo">
+            <div class="nav-logo-icon"><i class="fas fa-tasks"></i></div>
+            <div class="nav-logo-text">
+                <h6>Task Allocation</h6>
+                <small>TechNova Solutions</small>
+            </div>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#roles">Roles</a></li>
+        </ul>
+
+        <div class="nav-btns">
+            <a href="/auth/login" class="btn-login">Login</a>
+            <a href="/auth/register" class="btn-register">Register →</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-overlay"></div>
+
+        <div class="glow-dot glow-1"></div>
+        <div class="glow-dot glow-2"></div>
+
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="fas fa-bolt"></i> Rule-Based Intelligence
+            </div>
+            <h1 class="hero-title">
+                web Based Skill Proficiency And<br>Task Allocation For <span>IT Employees</span>
+            </h1>
+            <p class="hero-subtitle">
+                Automate task assignment based on employee skills, proficiency levels, 
+                and workload capacity. Improve efficiency, optimize resources, and 
+                deliver more with the right people.
+            </p>
+            <div class="hero-btns">
+                <a href="/auth/login" class="btn-get-started">
+                    Get Started <i class="fas fa-arrow-right"></i>
+                </a>
+                <a href="#features" class="btn-learn-more">
+                    <i class="fas fa-play-circle"></i> Learn More
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat-item">
+            <h3>3</h3>
+            <p>User Roles</p>
+        </div>
+        <div class="stat-item">
+            <h3>10</h3>
+            <p>Database Tables</p>
+        </div>
+        <div class="stat-item">
+            <h3>100%</h3>
+            <p>Auto Allocation</p>
+        </div>
+        <div class="stat-item">
+            <h3>5</h3>
+            <p>Proficiency Levels</p>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="section-badge"><i class="fas fa-star"></i> Core Features</div>
+        <h2 class="section-title">Everything You Need for<br><span>Smart Allocation</span></h2>
+        <p class="section-subtitle">Our rule-based engine ensures the right task goes to the right person every time.</p>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #3b5bdb22, #3b5bdb44);">
+                        <i class="fas fa-brain" style="color: #4dabf7;"></i>
+                    </div>
+                    <h5>Rule-Based Engine</h5>
+                    <p>Intelligent allocation engine that matches tasks to employees based on predefined rules — skill matching, proficiency validation, and workload checks.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #2f9e4422, #2f9e4444);">
+                        <i class="fas fa-cogs" style="color: #69db7c;"></i>
+                    </div>
+                    <h5>Skill Matching</h5>
+                    <p>Every task requires specific skills at defined proficiency levels. Our system matches task requirements with employee capabilities precisely.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #fd7e1422, #fd7e1444);">
+                        <i class="fas fa-balance-scale" style="color: #ffa94d;"></i>
+                    </div>
+                    <h5>Workload Balance</h5>
+                    <p>Prevent employee overload with intelligent workload threshold management. Tasks are only assigned when capacity is available.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #7048e822, #7048e844);">
+                        <i class="fas fa-chart-line" style="color: #9c36b5;"></i>
+                    </div>
+                    <h5>Real-time Tracking</h5>
+                    <p>Monitor task status, allocation history, and team performance in real-time through intuitive dashboards.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #0ca67822, #0ca67844);">
+                        <i class="fas fa-history" style="color: #26a69a;"></i>
+                    </div>
+                    <h5>Allocation Logs</h5>
+                    <p>Complete transparency with detailed allocation logs. Every assignment is recorded with reason explaining why the employee was chosen.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #fa525222, #fa525244);">
+                        <i class="fas fa-bell" style="color: #ff6b6b;"></i>
+                    </div>
+                    <h5>Smart Notifications</h5>
+                    <p>Employees receive instant notifications when tasks are assigned. Stay informed and never miss an assignment.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="text-center mb-5">
+            <div class="section-badge" style="display: inline-flex;"><i class="fas fa-route"></i> Process</div>
+            <h2 class="section-title">How It <span>Works</span></h2>
+            <p class="section-subtitle mx-auto">Simple, automated, and intelligent task allocation in 5 steps.</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-2 text-center">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h5>Manager Creates Task</h5>
+                    <p>Define task with required skills and proficiency levels</p>
+                </div>
+            </div>
+            <div class="col-md-2 text-center">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h5>Engine Scans Employees</h5>
+                    <p>Rule-based engine checks all employee skill profiles</p>
+                </div>
+            </div>
+            <div class="col-md-2 text-center">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h5>Skills Matched</h5>
+                    <p>Employee skills compared with task requirements</p>
+                </div>
+            </div>
+            <div class="col-md-2 text-center">
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h5>Workload Checked</h5>
+                    <p>Validates employee capacity before assignment</p>
+                </div>
+            </div>
+            <div class="col-md-2 text-center">
+                <div class="step-card">
+                    <div class="step-number">5</div>
+                    <h5>Task Assigned</h5>
+                    <p>Best match gets assigned with full explanation</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Roles Section -->
+    <section class="roles" id="roles">
+        <div class="text-center mb-5">
+            <div class="section-badge" style="display: inline-flex;"><i class="fas fa-users"></i> User Roles</div>
+            <h2 class="section-title">Three Roles, One <span>System</span></h2>
+            <p class="section-subtitle mx-auto">Different roles with specific access and responsibilities.</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4">
+                <div class="role-card" style="border-color: rgba(59,91,219,0.2);">
+                    <div class="role-icon" style="background: linear-gradient(135deg, #3b5bdb, #4dabf7);">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h5>Admin</h5>
+                    <div class="role-feature"><i class="fas fa-check-circle"></i> Manage Users & Roles</div>
+                    <div class="role-feature"><i class="fas fa-check-circle"></i> Manage Company Details</div>
+                    <div class="role-feature"><i class="fas fa-check-circle"></i> Manage Skills</div>
+                    <div class="role-feature"><i class="fas fa-check-circle"></i> Set Workload Threshold</div>
+                    <div class="role-feature"><i class="fas fa-check-circle"></i> View Allocation Logs</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="role-card" style="border-color: rgba(47,158,68,0.2);">
+                    <div class="role-icon" style="background: linear-gradient(135deg, #2f9e44, #69db7c);">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h5>Manager</h5>
+                    <div class="role-feature"><i class="fas fa-check-circle"></i> Create Tasks</div>
+                    <div class="role-feature"><i class="fas fa-check-circle"></i> Trigger Task Allocation</div>
+                    <div class="role-feature"><i class="fas fa-check-circle"></i> View Assigned Tasks</div>
+                    <div class="role-feature"><i class="fas fa-check-circle"></i> View Allocation Explanation</div>
+                    <div class="role-feature"><i class="fas fa-check-circle"></i> Monitor Task Status</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="role-card" style="border-color: rgba(253,126,20,0.2);">
+                    <div class="role-icon" style="background: linear-gradient(135deg, #fd7e14, #ffa94d);">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h5>Employee</h5>
+                    <div class="role-feature"><i class="fas fa-check-circle"></i> Update Skill Profile</div>
+                    <div class="role-feature"><i class="fas fa-check-circle"></i> View Assigned Tasks</div>
+                    <div class="role-feature"><i class="fas fa-check-circle"></i> View Allocation Explanation</div>
+                    <div class="role-feature"><i class="fas fa-check-circle"></i> Update Task Status</div>
+                    <div class="role-feature"><i class="fas fa-check-circle"></i> Receive Notifications</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <h2>Ready to <span>Get Started?</span></h2>
+        <p>Join TechNova Solutions Task Allocation System today!</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="/auth/login" class="btn-get-started">
+                Login Now <i class="fas fa-arrow-right"></i>
+            </a>
+            <a href="/auth/register" class="btn-learn-more">
+                Register <i class="fas fa-user-plus"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="footer-logo">
+            <div class="nav-logo-icon"><i class="fas fa-tasks"></i></div>
+            <div class="nav-logo-text">
+                <h6 style="color:white; margin:0; font-size:0.88rem;">Task Allocation System</h6>
+                <small style="color:rgba(255,255,255,0.3); font-size:0.68rem;">TechNova Solutions</small>
+            </div>
+        </div>
+        <p>© 2026 TechNova Solutions. All rights reserved.</p>
+        <p>MCA Final Year Project</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

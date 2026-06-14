@@ -1,0 +1,610 @@
+{% extends 'base.html' %}
+{% set hide_navbar = true %}
+
+{% block title %}Manager Dashboard - Task Allocation System{% endblock %}
+
+{% block content %}
+<style>
+    body { background: #f0f2f8 !important; }
+
+    .sidebar {
+        height: 100vh;
+        background: #1a2238;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        width: 210px;
+        top: 0;
+        left: 0;
+        z-index: 100;
+    }
+
+    .sidebar-header {
+        padding: 20px 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .sidebar-logo {
+        width: 38px;
+        height: 38px;
+        background: linear-gradient(135deg, #2f9e44, #69db7c);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+    }
+
+    .sidebar-brand h6 { color: white; font-weight: 700; margin: 0; font-size: 0.88rem; }
+    .sidebar-brand small { color: rgba(255,255,255,0.35); font-size: 0.68rem; }
+
+    .sidebar-section { padding: 15px 12px 5px; }
+
+    .sidebar-section-title {
+        color: rgba(255,255,255,0.25);
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        padding: 0 8px;
+        margin-bottom: 6px;
+    }
+
+    .sidebar-menu a {
+        display: flex;
+        align-items: center;
+        padding: 9px 10px;
+        color: rgba(255,255,255,0.55);
+        text-decoration: none;
+        transition: all 0.2s;
+        border-radius: 8px;
+        margin-bottom: 2px;
+        font-size: 0.83rem;
+        font-weight: 500;
+        gap: 10px;
+    }
+
+    .sidebar-menu a:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.9); }
+
+    .sidebar-menu a.active {
+        background: linear-gradient(135deg, #2f9e44, #69db7c);
+        color: white;
+        box-shadow: 0 4px 15px rgba(47,158,68,0.3);
+    }
+
+    .sidebar-menu a i { width: 16px; font-size: 0.82rem; text-align: center; }
+
+    .sidebar-divider { border-color: rgba(255,255,255,0.05); margin: 6px 12px; }
+
+    .sidebar-user {
+        padding: 14px;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: auto;
+    }
+
+    .user-avatar {
+        width: 34px;
+        height: 34px;
+        background: linear-gradient(135deg, #2f9e44, #69db7c);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.85rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .user-info h6 { color: white; margin: 0; font-size: 0.8rem; font-weight: 600; }
+    .user-info small { color: rgba(255,255,255,0.35); font-size: 0.68rem; }
+
+    .online-dot {
+        width: 8px;
+        height: 8px;
+        background: #51cf66;
+        border-radius: 50%;
+        display: inline-block;
+        margin-left: 4px;
+    }
+.main-wrapper { margin-left:210px; padding:25px; min-height:100vh; background:#f0f2f8; box-sizing:border-box; width:calc(100% - 210px); }
+
+    .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 25px;
+    }
+
+    .top-bar h4 { color: #1a2238; font-weight: 800; font-size: 1.4rem; margin: 0 0 4px; }
+    .top-bar h4 span { color: #2f9e44; }
+    .top-bar p { color: #6c757d; font-size: 0.85rem; margin: 0; }
+
+    .top-actions { display: flex; align-items: center; gap: 12px; }
+
+    .manager-pill {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        border-radius: 10px;
+        padding: 6px 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .manager-pill-avatar {
+        width: 28px;
+        height: 28px;
+        background: linear-gradient(135deg, #2f9e44, #69db7c);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .manager-pill span { color: #1a2238; font-size: 0.82rem; font-weight: 600; }
+    .manager-pill small { color: #6c757d; font-size: 0.7rem; display: block; }
+
+    .stat-card {
+        background: white;
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        transition: all 0.3s;
+        border: 1px solid rgba(0,0,0,0.04);
+        height: 100%;
+    }
+
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+
+    .stat-top { display: flex; align-items: flex-start; gap: 15px; margin-bottom: 12px; }
+
+    .stat-icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .stat-label { color: #6c757d; font-size: 0.78rem; font-weight: 500; margin-bottom: 4px; }
+    .stat-number { color: #1a2238; font-size: 1.9rem; font-weight: 800; line-height: 1; }
+    .stat-trend { font-size: 0.75rem; color: #6c757d; margin: 0; }
+    .trend-up { color: #51cf66; font-weight: 600; }
+
+    .icon-blue { background: linear-gradient(135deg, #3b5bdb, #4dabf7); }
+    .icon-orange { background: linear-gradient(135deg, #fd7e14, #ffa94d); }
+    .icon-green { background: linear-gradient(135deg, #2f9e44, #69db7c); }
+    .icon-purple { background: linear-gradient(135deg, #7048e8, #9c36b5); }
+
+    .chart-card {
+        background: white;
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        border: 1px solid rgba(0,0,0,0.04);
+        height: 100%;
+    }
+
+    .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .chart-header h6 { color: #1a2238; font-weight: 700; font-size: 0.95rem; margin: 0; }
+
+    .recent-card {
+        background: white;
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    .recent-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .recent-header h6 { color: #1a2238; font-weight: 700; font-size: 0.95rem; margin: 0; }
+    .view-all { color: #2f9e44; font-size: 0.78rem; text-decoration: none; font-weight: 600; }
+
+    .recent-table { width: 100%; border-collapse: collapse; }
+
+    .recent-table th {
+        color: #adb5bd;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: 8px 12px;
+        border-bottom: 1px solid #f1f3f5;
+        text-align: left;
+    }
+
+    .recent-table td {
+        padding: 12px;
+        color: #495057;
+        font-size: 0.83rem;
+        border-bottom: 1px solid #f8f9fa;
+        vertical-align: middle;
+    }
+
+    .recent-table tr:last-child td { border-bottom: none; }
+    .recent-table tr:hover td { background: #f0fff4; }
+
+    .task-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        color: white;
+        margin-right: 8px;
+    }
+
+    .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+    .status-assigned { background: #e7f5ff; color: #1971c2; }
+    .status-completed { background: #ebfbee; color: #2f9e44; }
+    .status-pending { background: #fff4e6; color: #e67700; }
+
+    .quick-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+    .quick-card {
+        background: #f0fff4;
+        border-radius: 12px;
+        padding: 15px 10px;
+        text-align: center;
+        text-decoration: none;
+        border: 1px solid #d3f9d8;
+        transition: all 0.2s;
+        display: block;
+    }
+
+    .quick-card:hover {
+        background: white;
+        border-color: #2f9e44;
+        box-shadow: 0 4px 15px rgba(47,158,68,0.1);
+        transform: translateY(-2px);
+    }
+
+    .quick-card i { font-size: 1.3rem; margin-bottom: 6px; display: block; }
+    .quick-card span { color: #495057; font-size: 0.72rem; font-weight: 600; display: block; }
+    .quick-card:hover span { color: #2f9e44; }
+
+    .trigger-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #2f9e44, #69db7c);
+        border-radius: 10px;
+        color: white;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.88rem;
+        box-shadow: 0 6px 20px rgba(47,158,68,0.3);
+        transition: all 0.3s;
+    }
+
+    .trigger-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(47,158,68,0.4);
+        color: white;
+    }
+
+    .summary-box {
+        background: #f8f9ff;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 10px;
+    }
+
+    .summary-box p { color: #6c757d; font-size: 0.75rem; margin: 0 0 4px; }
+    .summary-box h3 { font-weight: 800; margin: 0; font-size: 1.6rem; }
+</style>
+
+<div style="display: flex;">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo"><i class="fas fa-user-tie"></i></div>
+            <div class="sidebar-brand">
+                <h6>Task Allocation</h6>
+                <small>Manager Panel</small>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">Main Menu</p>
+            <div class="sidebar-menu">
+                <a href="/manager/dashboard" class="active"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="/manager/create_task"><i class="fas fa-plus-circle"></i> Create Task</a>
+                <a href="/manager/view_tasks"><i class="fas fa-list"></i> View Tasks</a>
+            </div>
+        </div>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">Allocation</p>
+            <div class="sidebar-menu">
+                <a href="/manager/trigger_allocation"><i class="fas fa-bolt"></i> Trigger Allocation</a>
+                <a href="/manager/monitor_status"><i class="fas fa-chart-bar"></i> Monitor Status</a>
+            </div>
+        </div>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-section">
+            <p class="sidebar-section-title">System</p>
+            <div class="sidebar-menu">
+                
+                <a href="{{ url_for('auth.logout') }}" style="color: #fa5252 !important;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="user-avatar">{{ session.get('user_name')[0] }}</div>
+            <div class="user-info">
+                <h6>{{ session.get('user_name') }} <span class="online-dot"></span></h6>
+                <small>Manager</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-wrapper">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div>
+                <h4>Welcome back, <span>{{ session.get('user_name') }}</span>! 👋</h4>
+                <p>Manage tasks and monitor your team's performance.</p>
+            </div>
+            <div class="top-actions">
+                <a href="/manager/trigger_allocation" class="trigger-btn">
+                    <i class="fas fa-bolt"></i> Trigger Allocation
+                </a>
+                <div class="manager-pill">
+                    <div class="manager-pill-avatar">{{ session.get('user_name')[0] }}</div>
+                    <div>
+                        <span>{{ session.get('user_name') }}</span>
+                        <small>Manager</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon-box icon-blue"><i class="fas fa-tasks"></i></div>
+                        <div>
+                            <p class="stat-label">Total Tasks</p>
+                            <p class="stat-number">{{ total_tasks }}</p>
+                        </div>
+                    </div>
+                    <p class="stat-trend"><span class="trend-up">↑</span> All tasks in system</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon-box icon-orange"><i class="fas fa-clock"></i></div>
+                        <div>
+                            <p class="stat-label">Pending Tasks</p>
+                            <p class="stat-number">{{ pending_tasks }}</p>
+                        </div>
+                    </div>
+                    <p class="stat-trend">Waiting for allocation</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon-box icon-purple"><i class="fas fa-user-check"></i></div>
+                        <div>
+                            <p class="stat-label">Assigned Tasks</p>
+                            <p class="stat-number">{{ assigned_tasks }}</p>
+                        </div>
+                    </div>
+                    <p class="stat-trend"><span class="trend-up">↑</span> Currently in progress</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon-box icon-green"><i class="fas fa-check-circle"></i></div>
+                        <div>
+                            <p class="stat-label">Completed Tasks</p>
+                            <p class="stat-number">{{ completed_tasks }}</p>
+                        </div>
+                    </div>
+                    <p class="stat-trend"><span class="trend-up">↑</span> Successfully done</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-5">
+                <div class="chart-card">
+                    <div class="chart-header"><h6>Task Overview</h6></div>
+                    <canvas id="lineChart" height="200"></canvas>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="chart-card">
+                    <div class="chart-header"><h6>Tasks by Status</h6></div>
+                    <canvas id="donutChart" height="200"></canvas>
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small><span style="color:#2f9e44;">●</span> Completed</small>
+                            <small style="font-weight:600;">{{ completed_tasks }}</small>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <small><span style="color:#3b5bdb;">●</span> Assigned</small>
+                            <small style="font-weight:600;">{{ assigned_tasks }}</small>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <small><span style="color:#fd7e14;">●</span> Pending</small>
+                            <small style="font-weight:600;">{{ pending_tasks }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="chart-card">
+                    <div class="chart-header"><h6>Task Summary</h6></div>
+                    <div class="summary-box" style="background:#f8f9ff;">
+                        <p>Total Tasks</p>
+                        <h3 style="color:#1a2238;">{{ total_tasks }}</h3>
+                    </div>
+                    <div class="summary-box" style="background:#f0fff4;">
+                        <p>Completed</p>
+                        <h3 style="color:#2f9e44;">{{ completed_tasks }}</h3>
+                    </div>
+                    <div class="summary-box" style="background:#fff4e6;">
+                        <p>Pending</p>
+                        <h3 style="color:#e67700;">{{ pending_tasks }}</h3>
+                    </div>
+                    <div class="summary-box" style="background:#e7f5ff; margin-bottom:0;">
+                        <p>Assigned</p>
+                        <h3 style="color:#1971c2;">{{ assigned_tasks }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Tasks + Quick Actions -->
+        <div class="row g-3">
+            <div class="col-md-8">
+                <div class="recent-card">
+                    <div class="recent-header">
+                        <h6>Recent Tasks</h6>
+                        <a href="/manager/view_tasks" class="view-all">View All</a>
+                    </div>
+                    <table class="recent-table">
+                        <thead>
+                            <tr>
+                                <th>Task Name</th>
+                                <th>Status</th>
+                                <th>Created At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in recent_tasks %}
+                            <tr>
+                                <td>
+                                    <span class="task-icon icon-green"><i class="fas fa-tasks"></i></span>
+                                    {{ task.title }}
+                                </td>
+                                <td>
+                                    <span class="status-badge {% if task.status == 'assigned' %}status-assigned{% elif task.status == 'completed' %}status-completed{% else %}status-pending{% endif %}">
+                                        {{ task.status|capitalize }}
+                                    </span>
+                                </td>
+                                <td>{{ task.created_at.strftime('%d %b %Y') }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% if not recent_tasks %}
+                            <tr><td colspan="3" style="text-align:center; color:#adb5bd;">No tasks yet!</td></tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="recent-card">
+                    <div class="recent-header"><h6>Quick Actions</h6></div>
+                    <div class="quick-grid">
+                        <a href="/manager/create_task" class="quick-card">
+                            <i class="fas fa-plus-circle" style="color:#2f9e44;"></i>
+                            <span>Create Task</span>
+                        </a>
+                        <a href="/manager/trigger_allocation" class="quick-card">
+                            <i class="fas fa-bolt" style="color:#3b5bdb;"></i>
+                            <span>Trigger Allocation</span>
+                        </a>
+                        <a href="/manager/view_tasks" class="quick-card">
+                            <i class="fas fa-list" style="color:#fd7e14;"></i>
+                            <span>View Tasks</span>
+                        </a>
+                        <a href="/manager/monitor_status" class="quick-card">
+                            <i class="fas fa-chart-bar" style="color:#7048e8;"></i>
+                            <span>Monitor Status</span>
+                        </a>
+                        <a href="{{ url_for('auth.logout') }}" class="quick-card">
+                            <i class="fas fa-sign-out-alt" style="color:#fa5252;"></i>
+                            <span>Logout</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx1 = document.getElementById('lineChart').getContext('2d');
+new Chart(ctx1, {
+    type: 'line',
+    data: {
+        labels: ['May 1','May 6','May 11','May 16','May 21','May 26','May 31'],
+        datasets: [{
+            label: 'Tasks',
+            data: [1, 2, 3, 4, 5, 6, {{ total_tasks }}],
+            borderColor: '#2f9e44',
+            backgroundColor: 'rgba(47,158,68,0.08)',
+            borderWidth: 2.5,
+            pointBackgroundColor: '#2f9e44',
+            pointRadius: 4,
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { color: '#f1f3f5' }, ticks: { color: '#adb5bd', font: { size: 10 } } },
+            y: { grid: { color: '#f1f3f5' }, ticks: { color: '#adb5bd', font: { size: 10 } }, beginAtZero: true }
+        }
+    }
+});
+
+const ctx2 = document.getElementById('donutChart').getContext('2d');
+new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+        labels: ['Completed', 'Assigned', 'Pending'],
+        datasets: [{
+            data: [{{ completed_tasks }}, {{ assigned_tasks }}, {{ pending_tasks }}],
+            backgroundColor: ['#2f9e44', '#3b5bdb', '#fd7e14'],
+            borderWidth: 0,
+            hoverOffset: 5
+        }]
+    },
+    options: {
+        responsive: true,
+        cutout: '72%',
+        plugins: { legend: { display: false } }
+    }
+});
+</script>
+{% endblock %}
